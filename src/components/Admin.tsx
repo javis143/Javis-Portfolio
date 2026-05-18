@@ -135,7 +135,11 @@ export function Admin() {
                 await signInWithGoogle();
               } catch (error: any) {
                 console.error("Login failed:", error);
-                alert(`Login failed: ${error.message}. Please ensure popups are enabled and your domain is authorized in Firebase.`);
+                if (error.code === 'auth/unauthorized-domain') {
+                  alert(`Login failed: This domain is not authorized in Firebase. \n\n1. Go to Firebase Console > Authentication > Settings > Authorized Domains.\n2. Add: ${window.location.hostname}\n3. Wait 2-5 minutes and try again.`);
+                } else {
+                  alert(`Login failed: ${error.message}. Try opening the app in a new tab if you're inside an iframe.`);
+                }
               }
             }}
             className="w-full py-4 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-3 hover:glow-blue transition-all"
@@ -155,12 +159,12 @@ export function Admin() {
   }
 
   const seedSampleData = async () => {
-    if (!window.confirm("This will add 3 sample blog posts. Continue?")) return;
+    if (!window.confirm("This will add 5 sample blog posts to your portfolio. Continue?")) return;
     
     const samples = [
       {
         title: "The Future of Solar: Dual-Axis Tracking Systems",
-        content: "Solar energy is most efficient when the panels are perpendicular to the sun's rays. In this post, we explore how a dual-axis tracker using LDR sensors and an Arduino can increase yield by up to 40% compared to fixed systems.\n\n### Key Components\n- LDR Sensors (4x)\n- Servo Motors (2x)\n- Arduino Uno / Nano\n- Custom 3D Printed Frame\n\n### Theoretical Yield\nBy following the sun precisely from dawn to dusk, the system maximizes the photon absorption rate throughout the day...",
+        content: "Solar energy is most efficient when the panels are perpendicular to the sun's rays. In this post, we explore how a dual-axis tracker using LDR sensors and an Arduino can increase yield by up to 40% compared to fixed systems.\n\n### Key Components\n- LDR Sensors (4x)\n- Servo Motors (2x)\n- Arduino Uno / Nano\n- Custom 3D Printed Frame\n\n### Theoretical Yield\nBy following the sun precisely from dawn to dusk, the system maximizes the photon absorption rate throughout the day. We used astronomical calculations merged with real-time sensor feedback to ensure the panels never 'hunt' for light during cloudy intervals.",
         excerpt: "Learn how dual-axis solar trackers significantly improve efficiency by following the sun's path throughout the day.",
         published: true,
         tags: ["Solar", "Arduino", "CleanTech"],
@@ -168,7 +172,7 @@ export function Admin() {
       },
       {
         title: "Securing the Edge: RFID & ESP32 Integration",
-        content: "Security systems are moving towards smart integration. This project demonstrates how to build a robust RFID-based door lock using the ESP32 for cloud logging and centralized access control.\n\n```cpp\n// Sample ESP32 RFID Auth logic\nif (uid == authorizedUID) {\n  digitalWrite(RELAY_PIN, HIGH);\n  logAccessToFirebase(uid);\n}\n```\n\nWe discuss the challenges of relay debounce and secure Wi-Fi credential management in embedded contexts...",
+        content: "Security systems are moving towards smart integration. This project demonstrates how to build a robust RFID-based door lock using the ESP32 for cloud logging and centralized access control.\n\n```cpp\n// Sample ESP32 RFID Auth logic\nif (uid == authorizedUID) {\n  digitalWrite(RELAY_PIN, HIGH);\n  logAccessToFirebase(uid);\n}\n```\n\nWe discuss the challenges of relay debounce and secure Wi-Fi credential management in embedded contexts. The system also features a breakdown of the RC522 module interface via SPI.",
         excerpt: "Exploring building secure, IoT-connected access control systems using ESP32 and RFID technology.",
         published: true,
         tags: ["Security", "ESP32", "IoT"],
@@ -176,10 +180,26 @@ export function Admin() {
       },
       {
         title: "Building a Better Breadboard: Prototyping Best Practices",
-        content: "Prototyping is an art. From cable management to power distribution, how you build your initial circuits determines how fast you can debug them.\n\n1. **Color Coding**: Always use Red for VCC and Black for GND.\n2. **Short Jumper Wires**: Keeps the layout clean and reduces parasitic capacitance.\n3. **Decoupling Capacitors**: Essential for stable power delivery to microcontrollers.\n\nIn this guide, I share my personal workflow for going from schematic to a functional prototype ready for PCB layout...",
+        content: "Prototyping is an art. From cable management to power distribution, how you build your initial circuits determines how fast you can debug them.\n\n1. **Color Coding**: Always use Red for VCC and Black for GND.\n2. **Short Jumper Wires**: Keeps the layout clean and reduces parasitic capacitance.\n3. **Decoupling Capacitors**: Essential for stable power delivery to microcontrollers.\n\nIn this guide, I share my personal workflow for going from schematic to a functional prototype ready for PCB layout. We also look at common pitfalls like floating pins and noisy power rails.",
         excerpt: "A guide for engineering students on effective circuit prototyping and debugging techniques.",
         published: true,
         tags: ["Electronics", "Prototyping", "Hardware"],
+        authorName: "Javis"
+      },
+      {
+        title: "Introduction to MQTT for Smart Home Labs",
+        content: "Message Queuing Telemetry Transport (MQTT) is the backbone of modern IoT. In this entry, we set up a local Mosquitto broker and connect multiple ESP32 nodes to share sensor data.\n\n### Why MQTT?\n- Lightweight overhead\n- Publish/Subscribe model\n- Ideal for low-bandwidth embedded devices\n\nWe walk through setting up topics like `home/livingroom/temp` and how to handle 'Last Will and Testament' messages for device offline monitoring.",
+        excerpt: "Understanding the lightweight communication protocol that powers the modern Internet of Things.",
+        published: true,
+        tags: ["IoT", "MQTT", "Networking"],
+        authorName: "Javis"
+      },
+      {
+        title: "Sustainable Innovation: My Journey in Green Tech",
+        content: "Engineering isn't just about building things; it's about building things that last and preserve our environment. This philosophical post covers my personal journey into renewable energy projects.\n\nFrom building small scale wind turbines to optimizing battery storage for off-grid lighting, I believe the future of engineering lies at the intersection of efficiency and sustainability.",
+        excerpt: "Reflections on the role of engineers in driving global sustainability through technical innovation.",
+        published: true,
+        tags: ["Sustainability", "Engineering", "Career"],
         authorName: "Javis"
       }
     ];
