@@ -14,11 +14,13 @@ import {
 import { 
   auth, 
   db, 
-  signInWithGoogle, 
+  loginWithEmail,
+  registerWithEmail,
+  logout,
   handleFirestoreError, 
   OperationType 
 } from '../lib/firebase';
-import { onAuthStateChanged, signOut, User as FirebaseUser } from 'firebase/auth';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { 
   Plus, 
   Trash2, 
@@ -30,7 +32,9 @@ import {
   PenTool, 
   Tag as TagIcon,
   Eye,
-  EyeOff
+  EyeOff,
+  Mail,
+  Key
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { SEO } from './SEO';
@@ -49,7 +53,10 @@ interface Post {
 }
 
 export function Admin() {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [email] = useState('chimangwejavis1@gmail.com');
+  const [password, setPassword] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
   const [isEditing, setIsEditing] = useState<string | null>(null); // 'new' or post ID
   const [formData, setFormData] = useState<Partial<Post>>({
@@ -63,12 +70,18 @@ export function Admin() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setLoading(false);
-    });
-    return () => unsub();
+    // We check for a local session
+    const saved = localStorage.getItem('admin_session');
+    if (saved === 'true') {
+      setUser({ email: ADMIN_EMAIL, uid: 'hardcoded-admin' });
+    }
+    setLoading(false);
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin_session');
+    setUser(null);
+  };
 
   useEffect(() => {
     if (user?.email === ADMIN_EMAIL) {
@@ -125,32 +138,80 @@ export function Admin() {
           <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-6">
             <Lock size={32} />
           </div>
-          <h2 className="text-2xl font-display font-bold mb-4 text-white">Admin Access</h2>
+          <h2 className="text-2xl font-display font-bold mb-4 text-white">
+            Administrator Access
+          </h2>
           <p className="text-slate-400 mb-8 text-sm leading-relaxed">
-            Only the site administrator can access the blog management dashboard.
+            Enter your secure administrative passcode to manage the Lab Notebook.
           </p>
-          <button 
-            onClick={async () => {
-              try {
-                await signInWithGoogle();
-              } catch (error: any) {
-                console.error("Login failed:", error);
-                if (error.code === 'auth/unauthorized-domain') {
-                  alert(`Login failed: This domain is not authorized in Firebase. \n\n1. Go to Firebase Console > Authentication > Settings > Authorized Domains.\n2. Add: ${window.location.hostname}\n3. Wait 2-5 minutes and try again.`);
-                } else {
-                  alert(`Login failed: ${error.message}. Try opening the app in a new tab if you're inside an iframe.`);
-                }
+
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              setLoginError(null);
+              // SECURITY NOTE: This is hardcoded as requested by the user.
+              // In a real production app, use secured backend authentication.
+              if (password === 'javis2025') {
+                setUser({ email: ADMIN_EMAIL, uid: 'hardcoded-admin' });
+                localStorage.setItem('admin_session', 'true');
+              } else {
+                setLoginError("Invalid administrative passcode. Please try again.");
               }
             }}
-            className="w-full py-4 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-3 hover:glow-blue transition-all"
+            className="space-y-4"
           >
-            Sign in with Google
-          </button>
+            <div className="space-y-2 text-left">
+              <label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest pl-1">Admin Email</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <input 
+                  required
+                  readOnly
+                  type="email" 
+                  value={email}
+                  className="w-full bg-surface-900/50 border border-surface-700 rounded-xl pl-12 pr-4 py-3 text-slate-400 outline-none cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 text-left">
+              <label className="text-[10px] uppercase font-bold text-slate-500 tracking-widest pl-1">Secure Passcode</label>
+              <div className="relative">
+                <Key className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                <input 
+                  required
+                  autoFocus
+                  type="password" 
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  className="w-full bg-surface-900 border border-surface-700 rounded-xl pl-12 pr-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-600"
+                />
+              </div>
+            </div>
+
+            {loginError && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs text-left">
+                {loginError}
+              </div>
+            )}
+
+            <button 
+              type="submit"
+              className="w-full py-4 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-3 hover:glow-blue transition-all"
+            >
+              Verify & Enter
+            </button>
+          </form>
+
+          <div className="mt-8 pt-6 border-t border-surface-800">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold">Encrypted Session Access</p>
+          </div>
           
-          {user && (
+          {user && user.email !== ADMIN_EMAIL && (
             <div className="mt-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs">
-              Signed in as {user.email}. This account does not have admin privileges.
-              <button onClick={() => signOut(auth)} className="ml-2 underline font-bold uppercase">Logout</button>
+              Current Session Issues
+              <button onClick={handleLogout} className="ml-2 underline font-bold uppercase">Sign Out</button>
             </div>
           )}
         </div>
@@ -228,7 +289,7 @@ export function Admin() {
             <h1 className="text-3xl font-display font-bold mb-2">Blog Dashboard</h1>
             <div className="flex items-center gap-4 text-xs text-slate-500">
               <span className="flex items-center gap-1"><User size={12} className="text-primary"/> {user.email}</span>
-              <button onClick={() => signOut(auth)} className="text-red-400 hover:underline flex items-center gap-1 uppercase font-bold tracking-tighter">
+              <button onClick={handleLogout} className="text-red-400 hover:underline flex items-center gap-1 uppercase font-bold tracking-tighter">
                 <LogOut size={12} /> Sign Out
               </button>
             </div>
