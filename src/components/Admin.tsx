@@ -134,7 +134,7 @@ export function Admin() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-900 px-6">
         <SEO title="Admin Login" />
-        <div className="glass-card p-12 rounded-3xl max-w-md w-full text-center border border-surface-700">
+        <div className="glass-card p-8 sm:p-12 rounded-3xl max-w-md w-full text-center border border-surface-700 overflow-hidden">
           <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-6">
             <Lock size={32} />
           </div>
@@ -169,7 +169,7 @@ export function Admin() {
                   readOnly
                   type="email" 
                   value={email}
-                  className="w-full bg-surface-900/50 border border-surface-700 rounded-xl pl-12 pr-4 py-3 text-slate-400 outline-none cursor-not-allowed"
+                  className="w-full bg-surface-900/50 border border-surface-700 rounded-xl pl-12 pr-4 py-3 text-slate-400 outline-none cursor-not-allowed truncate"
                 />
               </div>
             </div>

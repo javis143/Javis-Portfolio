@@ -185,19 +185,19 @@ function Hero() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold tracking-widest uppercase mb-6">
             <Zap size={12} /> Embedded Systems Explorer
           </div>
-          <h1 className="text-6xl md:text-8xl font-display font-bold leading-[0.9] mb-6 tracking-tighter">
+          <h1 className="text-5xl sm:text-7xl md:text-8xl font-display font-bold leading-[0.9] mb-6 tracking-tighter">
             Building the <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-400">Future</span> of IoT.
           </h1>
-          <p className="text-lg text-slate-400 max-w-lg mb-8 leading-relaxed font-sans">
+          <p className="text-base sm:text-lg text-slate-400 max-w-lg mb-8 leading-relaxed font-sans">
             Technology enthusiast specializing in <span className="text-slate-200">ESP32 microcontrollers</span>, 
             renewable energy innovation, and smart automation systems.
           </p>
           <div className="flex flex-wrap gap-4">
-            <a href="#projects" className="px-8 py-4 bg-primary text-white font-bold rounded-lg hover:glow-blue transition-all flex items-center gap-2 group">
+            <a href="#projects" className="px-6 py-3 sm:px-8 sm:py-4 bg-primary text-white text-sm sm:text-base font-bold rounded-lg hover:glow-blue transition-all flex items-center gap-2 group">
               View My Work <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </a>
-            <a href="#about" className="px-8 py-4 glass-card text-white font-bold rounded-lg hover:bg-surface-700 transition-all">
+            <a href="#about" className="px-6 py-3 sm:px-8 sm:py-4 glass-card text-white text-sm sm:text-base font-bold rounded-lg hover:bg-surface-700 transition-all">
               Learn More
             </a>
           </div>
@@ -532,7 +532,7 @@ function Leadership() {
             </ul>
           </motion.div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[
               { label: "Successful Realizations", value: "10+", icon: Award },
               { label: "Budgets Managed", value: "Verified", icon: Zap },
@@ -573,37 +573,37 @@ function Contact() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="glass-card p-8 rounded-3xl grid md:grid-cols-2 gap-8 items-center"
+          className="glass-card p-6 sm:p-8 rounded-3xl grid md:grid-cols-2 gap-8 items-center overflow-hidden"
         >
-          <div className="text-left space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-surface-900 border border-surface-700 flex items-center justify-center text-primary">
+          <div className="text-left space-y-6 w-full overflow-hidden">
+            <div className="flex items-center gap-4 w-full">
+              <div className="w-10 h-10 rounded-full bg-surface-900 border border-surface-700 flex items-center justify-center text-primary shrink-0">
                 <Mail size={20} />
               </div>
-              <div className="text-sm">
+              <div className="min-w-0 flex-1">
                 <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest">Email Address</div>
-                <div className="text-slate-200 font-bold">chimangwejavisnyamekong@gmail.com</div>
+                <div className="text-slate-200 font-bold text-xs sm:text-sm break-all">chimangwejavisnyamekong@gmail.com</div>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-surface-900 border border-surface-700 flex items-center justify-center text-primary">
+            <div className="flex items-center gap-4 w-full">
+              <div className="w-10 h-10 rounded-full bg-surface-900 border border-surface-700 flex items-center justify-center text-primary shrink-0">
                 <Linkedin size={20} />
               </div>
-              <div className="text-sm">
+              <div className="min-w-0 flex-1">
                 <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest">Personal Profile</div>
-                <div className="text-slate-200 font-bold">linkedin.com/in/chimangwe javis</div>
+                <div className="text-slate-200 font-bold text-xs sm:text-sm break-all">linkedin.com/in/chimangwe javis</div>
               </div>
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="w-full">
             <a 
               href="mailto:chimangwejavisnyamekong@gmail.com" 
-              className="w-full py-4 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-3 hover:glow-blue transition-all"
+              className="w-full py-3 sm:py-4 bg-primary text-white text-sm sm:text-base font-bold rounded-xl flex items-center justify-center gap-3 hover:glow-blue transition-all"
             >
-              <Send size={18} /> Send Message
+              <Send size={18} /> <span className="truncate">Send Message</span>
             </a>
-            <div className="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Usually responds within 24 hours</div>
+            <div className="text-[10px] text-slate-500 uppercase tracking-widest font-mono mt-4">Usually responds within 24 hours</div>
           </div>
         </motion.div>
       </div>
