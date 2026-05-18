@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Master Deny-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 3. Reusable Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      // Bootstrapped Admin: The user who requested the app
+      return isEmailVerified() && request.auth.token.email == "chimangwejavis1@gmail.com";
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // 2. Blog Post Rules
+    function isValidBlogPost(post) {
+      return post.keys().hasAll(['title', 'content', 'authorId', 'createdAt', 'published']) &&
+             post.keys().size() <= 10 && // Allow for tags and other optional fields
+             post.title is string && post.title.size() > 0 && post.title.size() <= 200 &&
+             post.content is string && post.content.size() > 0 && post.content.size() <= 50000 &&
+             post.authorId == request.auth.uid &&
+             post.published is bool &&
+             (post.authorName == null || (post.authorName is string && post.authorName.size() <= 100)) &&
+             (post.tags == null || (post.tags is list && post.tags.size() <= 10));
+    }
+
+    match /blog_posts/{postId} {
+      allow read: if isAdmin() || (existing().published == true);
+      
+      allow create: if isAdmin() && 
+                    isValidId(postId) && 
+                    isValidBlogPost(incoming()) && 
+                    incoming().createdAt == request.time;
+      
+      allow update: if isAdmin() && 
+                    isValidBlogPost(incoming()) &&
+                    incoming().createdAt == existing().createdAt &&
+                    (
+                      // Action: Edit Content
+                      incoming().diff(existing()).affectedKeys().hasOnly(['title', 'content', 'published', 'tags', 'authorName', 'updatedAt'])
+                    ) &&
+                    incoming().updatedAt == request.time;
+      
+      allow delete: if isAdmin();
+    }
+  }
+}

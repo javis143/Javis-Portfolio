@@ -1,0 +1,28 @@
+{
+  "entities": {
+    "BlogPost": {
+      "title": "Blog Post",
+      "description": "A blog post written by the owner.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string", "description": "Title of the post" },
+        "content": { "type": "string", "description": "Markdown content of the post" },
+        "excerpt": { "type": "string", "description": "Short summary for SEO" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "published": { "type": "boolean" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["title", "content", "authorId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/blog_posts/{postId}": {
+      "schema": "BlogPost",
+      "description": "Public blog posts"
+    }
+  }
+}

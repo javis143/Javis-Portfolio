@@ -32,12 +32,18 @@ import {
   Send
 } from "lucide-react";
 import { useState, useEffect, MouseEvent } from "react";
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
+import { SEO } from "./components/SEO";
+import { Blog } from "./components/Blog";
+import { Admin } from "./components/Admin";
 
 // --- Components ---
 
 function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -46,13 +52,27 @@ function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: "Home", href: "#home" },
-    { name: "About", href: "#about" },
-    { name: "Skills", href: "#skills" },
-    { name: "Projects", href: "#projects" },
-    { name: "Leadership", href: "#leadership" },
-    { name: "Contact", href: "#contact" },
+    { name: "Home", href: "/", hash: "#home" },
+    { name: "About", href: "/", hash: "#about" },
+    { name: "Skills", href: "/", hash: "#skills" },
+    { name: "Projects", href: "/", hash: "#projects" },
+    { name: "Leadership", href: "/", hash: "#leadership" },
+    { name: "Blog", href: "/blog" },
   ];
+
+  const handleNavClick = (link: any) => {
+    setMobileMenuOpen(false);
+    if (link.hash) {
+      if (pathname === '/') {
+        const el = document.querySelector(link.hash);
+        el?.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        navigate('/' + link.hash);
+      }
+    } else {
+      navigate(link.href);
+    }
+  };
 
   return (
     <nav 
@@ -64,7 +84,8 @@ function Navbar() {
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="text-xl font-display font-bold tracking-tighter"
+          className="text-xl font-display font-bold tracking-tighter cursor-pointer"
+          onClick={() => navigate('/')}
         >
           JAVIS<span className="text-primary">.TECH</span>
         </motion.div>
@@ -72,19 +93,27 @@ function Navbar() {
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium">
           {navLinks.map((link, i) => (
-            <motion.a
+            <motion.button
               key={link.name}
-              href={link.href}
+              onClick={() => handleNavClick(link)}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="text-slate-400 hover:text-primary transition-colors hover:glow-sm"
+              className={`transition-colors hover:glow-sm ${
+                (pathname === link.href) ? "text-primary" : "text-slate-400 hover:text-primary"
+              }`}
             >
               {link.name}
-            </motion.a>
+            </motion.button>
           ))}
           <motion.a
-            href="#contact"
+            href="/#contact"
+            onClick={(e) => {
+              if (pathname === '/') {
+                e.preventDefault();
+                document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="px-5 py-2 bg-primary text-white rounded-full text-xs font-bold hover:glow-blue transition-all"
@@ -113,15 +142,21 @@ function Navbar() {
           >
             <div className="px-6 py-8 flex flex-col gap-6 items-center">
               {navLinks.map((link) => (
-                <a
+                <button
                   key={link.name}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={() => handleNavClick(link)}
                   className="text-lg font-display text-slate-300 hover:text-primary"
                 >
                   {link.name}
-                </a>
+                </button>
               ))}
+              <Link 
+                to="/admin" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-xs text-slate-600 hover:text-slate-400 font-mono flex items-center gap-2 mt-4"
+              >
+                <ShieldCheck size={12} /> Admin Dashboard
+              </Link>
             </div>
           </motion.div>
         )}
@@ -129,6 +164,9 @@ function Navbar() {
     </nav>
   );
 }
+
+// ... rest of the existing functional components (Hero, About, Skills, etc.) 
+// Note: I will keep them but wrap them in a Home component
 
 function Hero() {
   return (
@@ -598,11 +636,39 @@ function Footer() {
           ))}
         </div>
 
-        <div className="text-[10px] text-slate-500 uppercase tracking-[0.2em]">
-          &copy; {new Date().getFullYear()} Javis Portfolio. Made by <a target="_blank" href="https://2bigdev.vercel.app">2BigDev</a>.
+        <div className="flex flex-col items-center md:items-end gap-2">
+          <div className="text-[10px] text-slate-500 uppercase tracking-[0.2em]">
+            &copy; {new Date().getFullYear()} Javis Portfolio. Made by <a target="_blank" href="https://2bigdev.vercel.app">2BigDev</a>.
+          </div>
+          <Link to="/admin" className="text-[8px] text-slate-700 hover:text-slate-400 font-mono uppercase tracking-widest transition-colors">
+            System Console
+          </Link>
         </div>
       </div>
     </footer>
+  );
+}
+
+function Home() {
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (hash) {
+      const el = document.querySelector(hash);
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [hash]);
+
+  return (
+    <>
+      <SEO />
+      <Hero />
+      <About />
+      <Skills />
+      <Projects />
+      <Leadership />
+      <Contact />
+    </>
   );
 }
 
@@ -610,18 +676,19 @@ function Footer() {
 
 export default function App() {
   return (
-    <div className="selection:bg-primary/30 selection:text-white">
-      <Navbar />
-      <main>
-        <Hero />
-        <About />
-        <Skills />
-        <Projects />
-        <Leadership />
-        <Contact />
-      </main>
-      <Footer />
-    </div>
+    <Router>
+      <div className="selection:bg-primary/30 selection:text-white">
+        <Navbar />
+        <main>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/admin" element={<Admin />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
+    </Router>
   );
 }
 
