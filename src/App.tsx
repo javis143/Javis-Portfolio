@@ -29,8 +29,15 @@ import {
   ExternalLink,
   Award,
   BookOpen,
-  Send
+  Send,
+  Binary
 } from "lucide-react";
+
+// --- Asset Imports ---
+import solarTrackerImg from "./assets/images/solar_tracker_prototype_1779117783309.png";
+import iotDashboardImg from "./assets/images/iot_smart_dashboard_1779117805974.png";
+import labBenchImg from "./assets/images/embedded_lab_bench_1779117825873.png";
+import rfidLockImg from "./assets/images/rfid_lock_system_1779117848821.png";
 import { useState, useEffect, MouseEvent } from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
 import { SEO } from "./components/SEO";
@@ -209,12 +216,25 @@ function Hero() {
             whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1, type: "spring" }}
-            className="aspect-square glass-card rounded-3xl p-8 flex items-center justify-center relative z-10"
+            className="aspect-square glass-card rounded-3xl p-6 flex items-center justify-center relative z-10"
           >
             <div className="grid grid-cols-2 gap-4 w-full h-full">
-              {[Cpu, Sun, Wifi, ShieldCheck].map((Icon, i) => (
-                <div key={i} className="bg-surface-900 rounded-2xl flex items-center justify-center text-primary/40 group hover:text-primary transition-all cursor-default border border-surface-700 hover:border-primary/50">
-                   <Icon size={48} strokeWidth={1} />
+              {[
+                { img: solarTrackerImg, label: "Solar Tracking" },
+                { img: rfidLockImg, label: "RFID Security" },
+                { img: iotDashboardImg, label: "IoT Controller" },
+                { img: labBenchImg, label: "R&D Lab" }
+              ].map((item, i) => (
+                <div key={i} className="group relative overflow-hidden rounded-2xl border border-surface-700 hover:border-primary/50 transition-all cursor-default">
+                  <img 
+                    src={item.img} 
+                    alt={item.label}
+                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-110 group-hover:scale-100"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface-900/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">{item.label}</span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -463,8 +483,8 @@ function Projects() {
       description: "Designed a system to optimize solar energy absorption using LDR sensors and servo motors controlled via Arduino. Increased efficiency by following the sun's trajectory.",
       tags: ["Arduino", "Servo Motors", "LDR Sensors", "Calculus"],
       images: [
-        "https://images.unsplash.com/photo-1509391366360-fe5bb58488b5?auto=format&fit=crop&q=80&w=800",
-        "https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?auto=format&fit=crop&q=80&w=800"
+        solarTrackerImg,
+        "https://images.unsplash.com/photo-1509391366360-fe5bb58488b5?auto=format&fit=crop&q=80&w=800"
       ]
     },
     {
@@ -473,6 +493,7 @@ function Projects() {
       description: "Developed an automated security system using ESP32, RFID modules, and relay control for door lock mechanisms. Features centralized database logging.",
       tags: ["ESP32", "RFID RC522", "Relays", "Security"],
       images: [
+        rfidLockImg,
         "https://images.unsplash.com/photo-1558494949-ef010cbdcc48?auto=format&fit=crop&q=80&w=800"
       ]
     },
@@ -481,7 +502,7 @@ function Projects() {
       category: "Automation",
       description: "Built a remote-access automation system for controlling household appliances using digital interfaces and sensors. Real-time feedback via Wi-Fi.",
       tags: ["IoT", "WebSockets", "Home Assistant", "System Integration"],
-      images: [] // Empty to demonstrate placeholder
+      images: [iotDashboardImg]
     }
   ];
 
