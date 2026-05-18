@@ -130,7 +130,14 @@ export function Admin() {
             Only the site administrator can access the blog management dashboard.
           </p>
           <button 
-            onClick={signInWithGoogle}
+            onClick={async () => {
+              try {
+                await signInWithGoogle();
+              } catch (error: any) {
+                console.error("Login failed:", error);
+                alert(`Login failed: ${error.message}. Please ensure popups are enabled and your domain is authorized in Firebase.`);
+              }
+            }}
             className="w-full py-4 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-3 hover:glow-blue transition-all"
           >
             Sign in with Google
@@ -147,6 +154,51 @@ export function Admin() {
     );
   }
 
+  const seedSampleData = async () => {
+    if (!window.confirm("This will add 3 sample blog posts. Continue?")) return;
+    
+    const samples = [
+      {
+        title: "The Future of Solar: Dual-Axis Tracking Systems",
+        content: "Solar energy is most efficient when the panels are perpendicular to the sun's rays. In this post, we explore how a dual-axis tracker using LDR sensors and an Arduino can increase yield by up to 40% compared to fixed systems.\n\n### Key Components\n- LDR Sensors (4x)\n- Servo Motors (2x)\n- Arduino Uno / Nano\n- Custom 3D Printed Frame\n\n### Theoretical Yield\nBy following the sun precisely from dawn to dusk, the system maximizes the photon absorption rate throughout the day...",
+        excerpt: "Learn how dual-axis solar trackers significantly improve efficiency by following the sun's path throughout the day.",
+        published: true,
+        tags: ["Solar", "Arduino", "CleanTech"],
+        authorName: "Javis"
+      },
+      {
+        title: "Securing the Edge: RFID & ESP32 Integration",
+        content: "Security systems are moving towards smart integration. This project demonstrates how to build a robust RFID-based door lock using the ESP32 for cloud logging and centralized access control.\n\n```cpp\n// Sample ESP32 RFID Auth logic\nif (uid == authorizedUID) {\n  digitalWrite(RELAY_PIN, HIGH);\n  logAccessToFirebase(uid);\n}\n```\n\nWe discuss the challenges of relay debounce and secure Wi-Fi credential management in embedded contexts...",
+        excerpt: "Exploring building secure, IoT-connected access control systems using ESP32 and RFID technology.",
+        published: true,
+        tags: ["Security", "ESP32", "IoT"],
+        authorName: "Javis"
+      },
+      {
+        title: "Building a Better Breadboard: Prototyping Best Practices",
+        content: "Prototyping is an art. From cable management to power distribution, how you build your initial circuits determines how fast you can debug them.\n\n1. **Color Coding**: Always use Red for VCC and Black for GND.\n2. **Short Jumper Wires**: Keeps the layout clean and reduces parasitic capacitance.\n3. **Decoupling Capacitors**: Essential for stable power delivery to microcontrollers.\n\nIn this guide, I share my personal workflow for going from schematic to a functional prototype ready for PCB layout...",
+        excerpt: "A guide for engineering students on effective circuit prototyping and debugging techniques.",
+        published: true,
+        tags: ["Electronics", "Prototyping", "Hardware"],
+        authorName: "Javis"
+      }
+    ];
+
+    try {
+      for (const sample of samples) {
+        await addDoc(collection(db, 'blog_posts'), {
+          ...sample,
+          authorId: user.uid,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+      }
+      alert("Sample blogs added successfully!");
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, 'blog_posts');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-surface-900 pt-32 pb-20 px-6 font-sans">
       <SEO title="Blog Admin" />
@@ -161,12 +213,20 @@ export function Admin() {
               </button>
             </div>
           </div>
-          <button 
-            onClick={() => { setIsEditing('new'); setFormData({ title: '', content: '', excerpt: '', published: false, tags: [], authorName: 'Javis' }); }}
-            className="px-6 py-3 bg-primary text-white font-bold rounded-xl flex items-center gap-2 hover:glow-blue transition-all"
-          >
-            <Plus size={20} /> Create New Post
-          </button>
+          <div className="flex gap-4">
+            <button 
+              onClick={seedSampleData}
+              className="px-6 py-3 bg-surface-800 text-slate-300 border border-surface-700 font-bold rounded-xl flex items-center gap-2 hover:bg-surface-700 transition-all"
+            >
+              <PenTool size={18} /> Seed Lab Data
+            </button>
+            <button 
+              onClick={() => { setIsEditing('new'); setFormData({ title: '', content: '', excerpt: '', published: false, tags: [], authorName: 'Javis' }); }}
+              className="px-6 py-3 bg-primary text-white font-bold rounded-xl flex items-center gap-2 hover:glow-blue transition-all"
+            >
+              <Plus size={20} /> Create New Post
+            </button>
+          </div>
         </div>
 
         {isEditing ? (

@@ -624,7 +624,7 @@ function Footer() {
           {[
             { icon: Github, href: "https://github.com/javis143" },
             { icon: Linkedin, href: "https://www.linkedin.com/in/chimangwe-javis-a4893932b?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" },
-            { icon: Mail, href: "chimangwejavis1@gmail.com" }
+            { icon: Mail, href: "mailto:chimangwejavis1@gmail.com" }
           ].map((social, i) => (
             <a 
               key={i} 
