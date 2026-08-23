@@ -1,0 +1,34 @@
+[
+  {
+    "id": "esp32-journey",
+    "title": "My Journey Building Projects with ESP32: Lessons, Challenges, and IoT Development Insights",
+    "date": "2026-07-07T14:00:00.000Z",
+    "excerpt": "Why I chose the ESP32 for my embedded systems projects, common beginner mistakes, and insights on moving from prototypes to professional IoT applications.",
+    "tags": ["ESP32", "IoT", "Embedded", "Hardware"],
+    "coverImage": "/images/esp32_hero_banner.jpg"
+  },
+  {
+    "id": "multi-tenant-architecture",
+    "title": "Building a Multi-Tenant Application Architecture",
+    "date": "2026-07-05T09:00:00.000Z",
+    "excerpt": "A comprehensive guide on designing multi-tenant architectures, focusing on data isolation, routing, and deployment strategies.",
+    "tags": ["Software", "Architecture", "Cloud"],
+    "coverImage": "/images/multi_tenant.jpg"
+  },
+  {
+    "id": "solar-tracking-optimization",
+    "title": "Optimizing Solar Tracking Algorithms",
+    "date": "2026-07-01T14:30:00.000Z",
+    "excerpt": "A deep dive into dual-axis solar tracking algorithms. How to maximize energy yield using astronomical equations.",
+    "tags": ["Hardware", "Renewable", "Algorithms"],
+    "coverImage": "/images/solar_tracker_project.jpg"
+  },
+  {
+    "id": "embedded-systems-future",
+    "title": "The Future of Embedded Systems in IoT",
+    "date": "2026-06-15T10:00:00.000Z",
+    "excerpt": "Exploring the shift towards edge computing and AI in modern embedded systems. Why microcontrollers are getting smarter.",
+    "tags": ["Embedded", "IoT", "AI"],
+    "coverImage": "/images/future_embedded.jpg"
+  }
+]

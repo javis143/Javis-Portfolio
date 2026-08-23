@@ -1,715 +1,1936 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
-  Github, 
-  Linkedin, 
-  Mail, 
-  Cpu, 
-  Sun, 
-  Wifi, 
-  ShieldCheck, 
-  Zap, 
-  Users, 
-  Code, 
-  Wrench, 
-  ChevronRight,
-  ChevronLeft,
-  Camera,
-  Menu,
-  X,
-  ExternalLink,
-  Award,
-  BookOpen,
-  Send,
-  Binary
+  Cpu, Sun, Moon, Mail, Linkedin, ExternalLink, 
+  CheckCircle2, Plus, Trash2, AlertCircle, Loader2, 
+  Send, Database, BookOpen, Heart, Info, RefreshCw, ChevronRight, 
+  Clipboard, Check, MessageSquare, Key, Eye, EyeOff, Code
 } from "lucide-react";
+import { useTranslation } from "./lib/i18n";
+import Markdown from 'react-markdown';
+import blogIndex from "./data/blog_index.json";
 
-// --- Asset Imports ---
-import solarTrackerImg from "./assets/images/solar_tracker_prototype_1779117783309.png";
-import iotDashboardImg from "./assets/images/iot_smart_dashboard_1779117805974.png";
-import labBenchImg from "./assets/images/embedded_lab_bench_1779117825873.png";
-import rfidLockImg from "./assets/images/rfid_lock_system_1779117848821.png";
-import { useState, useEffect, MouseEvent } from "react";
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from "react-router-dom";
-import { SEO } from "./components/SEO";
-import { Blog } from "./components/Blog";
-import { Admin } from "./components/Admin";
+import esp32Journey from "./data/blog/esp32-journey.json";
+import multiTenant from "./data/blog/multi-tenant-architecture.json";
+import solarTracking from "./data/blog/solar-tracking-optimization.json";
+import embeddedFuture from "./data/blog/embedded-systems-future.json";
 
-// --- Components ---
+const BLOG_ARTICLES: Record<string, any> = {
+  "esp32-journey": esp32Journey,
+  "multi-tenant-architecture": multiTenant,
+  "solar-tracking-optimization": solarTracking,
+  "embedded-systems-future": embeddedFuture
+};
 
-function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
+// Custom mechatronics/embedded engineering projects
+const PROJECTS = [
+  {
+    id: "solar-tracker",
+    title: "Dual-Axis Solar Tracker",
+    image: "/images/solar_tracker_project.jpg",
+    tags: ["ESP32", "Renewable Energy", "PID Control", "IoT Telemetry"],
+    shortDesc: "Precise astronomical solar tracking array using low-power dual-core ESP32 algorithms to maximize PV solar collection yield by up to 40%.",
+    caseStudy: {
+      problem: "Static solar panels lose significant energy absorption efficiency (up to 40%) as the sun moves across the sky at varying seasonal inclinations.",
+      solution: "Designed a lightweight, dual-axis solar tracking mechanical system. Equipped with light-dependent resistors (LDRs), servo drive actuators, and an ESP32 microcontroller acting as the real-time mathematical controller.",
+      implementation: [
+        "Coded a non-blocking PID loop tracking algorithm in C++ to align the solar panel directly perpendicular to incoming light rays.",
+        "Integrated active Wi-Fi telemetry broadcasting real-time angle coordinates and electrical solar voltage data.",
+        "Created a web-based SVG data dashboard demonstrating live orientation, current status, and daily accumulation statistics."
+      ],
+      components: ["ESP32 Dev Board", "LDR Photodetectors", "Micro Servo Drive Units", "Mini Solar PV Panel (12V)", "ADC Noise Filters"]
+    }
+  },
+  {
+    id: "smart-socket",
+    title: "Smart Socket & Overcurrent Protection",
+    image: "/images/smart_socket_protection.jpg",
+    tags: ["Arduino", "Hardware Security", "Current Sensing", "Relays"],
+    shortDesc: "IoT power monitoring outlet equipped with high-speed current monitoring, optocoupled logic isolation, and automatic overcurrent protective trip relays.",
+    caseStudy: {
+      problem: "Inexpensive domestic electronics lack dedicated overcurrent safety trips, leading to frequent appliance failures and potential fire hazards.",
+      solution: "Developed a robust, smart energy socket plug with integrated real-time current-sensing, galvanic optical logic isolation, and automated rapid trip relays.",
+      implementation: [
+        "Wired a precise non-invasive ACS712 current transducer and applied low-pass RC filtering to condition the sensor's raw analog output.",
+        "Configured high-speed microcontroller thresholds to isolate high-voltage mains loads under 20ms of load current surge.",
+        "Implemented secure optocoupler circuits to completely isolate the sensitive microcontroller's 5V DC power boundary from AC mains voltage."
+      ],
+      components: ["Arduino Nano", "ACS712 Current Transducer", "Optocoupler Isolators", "10A Mechanical Trip Relay", "OLED Status Display"]
+    }
+  },
+  {
+    id: "propeller-clock",
+    title: "Propeller LED POV Clock",
+    image: "/images/propeller_led_clock.jpg",
+    tags: ["Embedded C", "PCB Design", "Brushless Motors", "Sensor Sync"],
+    shortDesc: "A persistence of vision (POV) analog clock using a custom spinning PCB, high-speed LED sync, and Hall effect position alignment.",
+    caseStudy: {
+      problem: "Creating a completely mechanical or standard matrix dynamic visual clock requires complex, bulky, and expensive arrays.",
+      solution: "Engineered a high-speed rotating Persistence of Vision (POV) single-line LED clock. Uses optical illusion timing to paint an analog/digital clock face in mid-air.",
+      implementation: [
+        "Designed and fabricated a custom double-sided balanced PCB on EasyEDA, perfectly weighted to spin smoothly at 2500 RPM.",
+        "Utilized a Hall effect sensor as a high-precision hardware trigger input to synchronize the exact zero-degree starting point of each spin.",
+        "Programmed a 16-bit Timer interrupt with sub-microsecond precision in raw C++ to toggle an array of 8 high-brightness LEDs on/off."
+      ],
+      components: ["ATmega328P MCU", "Hall Effect Magnetic Trigger", "Custom Balanced PCB", "Brushless DC Motor", "Lithium Battery Ring Controller"]
+    }
+  },
+  {
+    id: "greenhouse-poultry",
+    title: "Smart Poultry & Greenhouse Automation",
+    image: "/images/smart_poultry_automation.jpg",
+    tags: ["ESP32", "Agriculture", "Climate Control", "Sensors"],
+    shortDesc: "Automated climate control, animal feed dispensers, and multi-sensor environmental telemetry system designed for agricultural enclosures.",
+    caseStudy: {
+      problem: "Small-scale agricultural enclosures experience high livestock mortality or lower crop yield due to sudden, unmonitored climate swings.",
+      solution: "Engineered an intelligent, multi-zone micro-climate controller utilizing combined heating/cooling control loops and automated food dispensers.",
+      implementation: [
+        "Integrated a high-accuracy temperature and humidity sensor array with solid-state relay coils powering fans and heating lamps.",
+        "Programmed continuous agricultural telemetry data collection with localized fail-safe SD Card backup storage.",
+        "Built a dual-screw motorized food dispenser scheduled via real-time clock (RTC) registers."
+      ],
+      components: ["ESP32-WROOM-32", "DHT22 Climate Probes", "RTC Timing Chip", "Dual Motor Actuators", "Relay Control Enclosure"]
+    }
+  },
+  {
+    id: "vital-signs",
+    title: "Vital Signs Telemetry Monitor",
+    image: "/images/vital_signs_monitor.jpg",
+    tags: ["BLE", "Wearables", "Medical Sensors", "Low Power"],
+    shortDesc: "Low-power medical tracking unit measuring heart rate, oxygen levels, and temperature, with real-time Bluetooth Low Energy broadcasting.",
+    caseStudy: {
+      problem: "Bulkier clinical medical monitors limit consumer portability and consume high power, making remote outpatient tracking difficult.",
+      solution: "Constructed an ultra-compact, battery-powered wearable monitoring band using optimized Bluetooth Low Energy (BLE) profiles.",
+      implementation: [
+        "Interfaced a MAX30102 pulse oximetry sensor and applied ambient-light cancellation algorithms to capture clear photoplethysmogram (PPG) waveforms.",
+        "Coded ESP32 deep sleep algorithms to cycle the processor down during inactive intervals, extending battery duration to 7 days.",
+        "Broadcasted standard GATT healthcare profiles directly to a paired smartphone client application."
+      ],
+      components: ["ESP32-PICO-D4", "MAX30102 Oximeter", "Rechargeable LiPo Cell", "Active Power Management IC", "Compact 3D Printed Case"]
+    }
+  },
+  {
+    id: "embedded-lab",
+    title: "Embedded Systems Lab Controller",
+    image: "/images/pcb_board_design.jpg",
+    tags: ["PCB Layout", "Industrial", "I2C / SPI Buses", "Safety"],
+    shortDesc: "An industrial-grade computer automation console that aggregates multi-protocol I2C/SPI sensor feeds and commands modular actuator arrays.",
+    caseStudy: {
+      problem: "Educational and research labs spend substantial time configuring messy wiring connections, leading to short circuits and faulty testing.",
+      solution: "Engineered a professional, metal-enclosed modular laboratory controller that exposes protected digital and analog bus terminals.",
+      implementation: [
+        "Laid out a 4-layer PCB with dedicated ground planes to minimize electromagnetic interference (EMI) on high-speed data lanes.",
+        "Integrated active TVS diode electrostatic discharge protection across all user-facing testing terminals.",
+        "Equipped the controller with SPI/I2C galvanic signal isolation chips to prevent connected testing loads from damaging the processor."
+      ],
+      components: ["STM32F4 Core board", "TVS ESD Protection Diodes", "Digital Bus Multiplexers", "Galvanic Optoisolators", "Extruded Aluminum Enclosure"]
+    }
+  }
+];
+
+interface Task {
+  id: string;
+  title: string;
+  category: 'PCB' | 'Firmware' | 'Hardware' | 'Testing';
+  priority: 'High' | 'Medium' | 'Low';
+  status: 'To Do' | 'In Progress' | 'Completed';
+  createdAt: string;
+}
+
+interface GitHubCommit {
+  sha: string;
+  message: string;
+  author: string;
+  date: string;
+  repoName: string;
+  repoUrl: string;
+  commitUrl: string;
+}
+
+interface Message {
+  id: string;
+  sender: "user" | "bot";
+  text: string;
+  timestamp: string;
+}
+
+export default function App() {
+  const { locale, setLocale, t } = useTranslation();
+  const [activeTab, setActiveTab] = useState<'home' | 'blog' | 'tasks' | 'whoami' | 'admin'>('home');
+  const [selectedProject, setSelectedProject] = useState<typeof PROJECTS[0] | null>(null);
+  const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  // --- Dynamic Blog Integration ---
+  const [dynamicBlogIndex, setDynamicBlogIndex] = useState<any[]>([]);
+  const [loadedArticles, setLoadedArticles] = useState<Record<string, any>>({});
+  const [blogsLoading, setBlogsLoading] = useState(true);
+  const [activeArticleLoading, setActiveArticleLoading] = useState(false);
+
+  // --- AI Blogging Sandbox & Settings States ---
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [blogApiKey, setBlogApiKey] = useState("javis_secret_blog_token");
+  const [aiTopic, setAiTopic] = useState("");
+  const [aiStyle, setAiStyle] = useState("Deep Tutorial/Walkthrough");
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [generatedArticle, setGeneratedArticle] = useState<any>(null);
+  const [isPublishingGenerated, setIsPublishingGenerated] = useState(false);
+
+  const fetchBlogIndex = async () => {
+    try {
+      setBlogsLoading(true);
+      const res = await fetch("/api/blog");
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setDynamicBlogIndex(data);
+          return;
+        }
+      }
+      setDynamicBlogIndex(blogIndex);
+    } catch (err) {
+      console.error("Error fetching blog index from API, falling back to static:", err);
+      setDynamicBlogIndex(blogIndex);
+    } finally {
+      setBlogsLoading(false);
+    }
+  };
+
+  const fetchArticleDetails = async (id: string) => {
+    if (loadedArticles[id]) return;
+    setActiveArticleLoading(true);
+    try {
+      const res = await fetch(`/api/blog/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setLoadedArticles(prev => ({ ...prev, [id]: data }));
+      } else {
+        const staticArt = BLOG_ARTICLES[id];
+        if (staticArt) {
+          setLoadedArticles(prev => ({ ...prev, [id]: staticArt }));
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching blog details:", err);
+      const staticArt = BLOG_ARTICLES[id];
+      if (staticArt) {
+        setLoadedArticles(prev => ({ ...prev, [id]: staticArt }));
+      }
+    } finally {
+      setActiveArticleLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    fetchBlogIndex();
   }, []);
 
-  const navLinks = [
-    { name: "Home", href: "/", hash: "#home" },
-    { name: "About", href: "/", hash: "#about" },
-    { name: "Skills", href: "/", hash: "#skills" },
-    { name: "Projects", href: "/", hash: "#projects" },
-    { name: "Leadership", href: "/", hash: "#leadership" },
-    { name: "Blog", href: "/blog" },
-  ];
+  useEffect(() => {
+    const activeId = selectedBlogId || (dynamicBlogIndex[0]?.id) || "esp32-journey";
+    if (activeId) {
+      fetchArticleDetails(activeId);
+    }
+  }, [selectedBlogId, dynamicBlogIndex]);
 
-  const handleNavClick = (link: any) => {
-    setMobileMenuOpen(false);
-    if (link.hash) {
-      if (pathname === '/') {
-        const el = document.querySelector(link.hash);
-        el?.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        navigate('/' + link.hash);
-      }
+  // Theme support (synchronised with the index.html inline script and CSS variables)
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
+  });
+
+  useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.remove('dark');
     } else {
-      navigate(link.href);
+      document.documentElement.classList.add('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  // Toast notifier helper
+  const triggerToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleCopyText = (text: string, successMsg: string) => {
+    navigator.clipboard.writeText(text);
+    triggerToast(successMsg);
+  };
+
+  // --- Task Planner State & Effects ---
+  const [tasks, setTasks] = useState<Task[]>(() => {
+    const saved = localStorage.getItem("javis_tasks");
+    if (saved) return JSON.parse(saved);
+    return [
+      {
+        id: "task-1",
+        title: "Calibrate dual-axis solar tracker photoresistor array thresholds",
+        category: "Hardware",
+        priority: "High",
+        status: "In Progress",
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000 * 2).toISOString()
+      },
+      {
+        id: "task-2",
+        title: "Refactor ESP32 battery telemetry Wi-Fi deep-sleep routine",
+        category: "Firmware",
+        priority: "High",
+        status: "To Do",
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000 * 1).toISOString()
+      },
+      {
+        id: "task-3",
+        title: "Draft 4-layer power distribution network schematic for laboratory controller",
+        category: "PCB",
+        priority: "Medium",
+        status: "Completed",
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000 * 5).toISOString()
+      }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("javis_tasks", JSON.stringify(tasks));
+  }, [tasks]);
+
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskCategory, setNewTaskCategory] = useState<Task['category']>("Firmware");
+  const [newTaskPriority, setNewTaskPriority] = useState<Task['priority']>("Medium");
+
+  const handleAddTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTaskTitle.trim()) return;
+    const taskItem: Task = {
+      id: `task-${Date.now()}`,
+      title: newTaskTitle.trim(),
+      category: newTaskCategory,
+      priority: newTaskPriority,
+      status: "To Do",
+      createdAt: new Date().toISOString()
+    };
+    setTasks([taskItem, ...tasks]);
+    setNewTaskTitle("");
+    triggerToast("Task added successfully!");
+  };
+
+  const handleToggleTaskStatus = (id: string) => {
+    setTasks(tasks.map(t => {
+      if (t.id === id) {
+        const nextStatus: Task['status'] = 
+          t.status === 'To Do' ? 'In Progress' : 
+          t.status === 'In Progress' ? 'Completed' : 'To Do';
+        return { ...t, status: nextStatus };
+      }
+      return t;
+    }));
+  };
+
+  const handleDeleteTask = (id: string) => {
+    setTasks(tasks.filter(t => t.id !== id));
+    triggerToast("Task deleted.");
+  };
+
+  // --- GitHub Commits Feed State & Effects ---
+  const [commits, setCommits] = useState<GitHubCommit[]>([]);
+  const [commitsLoading, setCommitsLoading] = useState(false);
+  const [commitsError, setCommitsError] = useState(false);
+
+  const fetchCommits = async () => {
+    setCommitsLoading(true);
+    setCommitsError(false);
+    try {
+      const res = await fetch("/api/github-commits");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const data = await res.json();
+      setCommits(data);
+    } catch (err) {
+      console.error("Error fetching commits:", err);
+      setCommitsError(true);
+    } finally {
+      setCommitsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCommits();
+  }, []);
+
+  // --- AI Chatbot State & Effects ---
+  const [chatMessages, setChatMessages] = useState<Message[]>([]);
+
+  // Initialize welcome message dynamically on locale change
+  useEffect(() => {
+    setChatMessages([
+      {
+        id: "welcome-msg",
+        sender: "bot",
+        text: t("chatbot.welcome") || "Hello! I'm Javis's interactive AI assistant. Ask me anything about my Mechatronics qualifications, ESP32/Arduino projects, EasyEDA board layouts, or custom automation networks!",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+  }, [locale]);
+
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const handleSendMessage = async (textToSend?: string) => {
+    const query = textToSend || chatInput;
+    if (!query.trim() || chatLoading) return;
+
+    const newUserMessage: Message = {
+      id: `msg-${Date.now()}`,
+      sender: "user",
+      text: query,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setChatMessages(prev => [...prev, newUserMessage]);
+    if (!textToSend) setChatInput("");
+    setChatLoading(true);
+
+    // Auto scroll
+    setTimeout(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+
+    try {
+      const res = await fetch("/api/portfolio/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: query,
+          history: chatMessages.slice(-8)
+        })
+      });
+
+      if (!res.ok) throw new Error("Failed to chat");
+      const data = await res.json();
+
+      const newBotMessage: Message = {
+        id: `msg-bot-${Date.now()}`,
+        sender: "bot",
+        text: data.response,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setChatMessages(prev => [...prev, newBotMessage]);
+    } catch (error) {
+      console.error("Chatbot error:", error);
+      const errorBotMessage: Message = {
+        id: `msg-bot-err-${Date.now()}`,
+        sender: "bot",
+        text: "I'm having a bit of trouble reaching my knowledge base. But Javis is always available for custom mechatronics and hardware integration work! You can email him at chimangwejavis1@gmail.com.",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setChatMessages(prev => [...prev, errorBotMessage]);
+    } finally {
+      setChatLoading(false);
+      setTimeout(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  };
+
+  // --- Admin Dashboard State ---
+  const [adminBlogDraftTitle, setAdminBlogDraftTitle] = useState("");
+  const [adminBlogDraftTags, setAdminBlogDraftTags] = useState("");
+  const [adminBlogDraftContent, setAdminBlogDraftContent] = useState("");
+  const mockStats = {
+    views: 1240,
+    submissions: 12,
+    apiLatency: "45ms",
+    pipelineStatus: "Active"
+  };
+
+  const handlePublishDraft = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminBlogDraftTitle.trim() || !adminBlogDraftContent.trim()) {
+      triggerToast("Please provide a title and markdown content.");
+      return;
+    }
+    try {
+      const res = await fetch("/api/blog/publish", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${blogApiKey}`
+        },
+        body: JSON.stringify({
+          title: adminBlogDraftTitle,
+          content: adminBlogDraftContent,
+          tags: adminBlogDraftTags,
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Publish failed");
+      }
+
+      triggerToast(`Draft titled "${adminBlogDraftTitle}" published successfully!`);
+      setAdminBlogDraftTitle("");
+      setAdminBlogDraftTags("");
+      setAdminBlogDraftContent("");
+      await fetchBlogIndex(); // Refresh the list
+    } catch (err: any) {
+      console.error("Publish draft error:", err);
+      triggerToast(`Failed to publish: ${err.message}`);
+    }
+  };
+
+  const handleGenerateWithAI = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiTopic.trim()) return;
+    setAiGenerating(true);
+    setGeneratedArticle(null);
+    try {
+      const res = await fetch("/api/blog/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: aiTopic, style: aiStyle })
+      });
+      if (!res.ok) throw new Error("Failed to generate article");
+      const data = await res.json();
+      setGeneratedArticle(data);
+      triggerToast("AI article drafted successfully! Review below.");
+    } catch (err: any) {
+      console.error("AI Generation failed:", err);
+      triggerToast("AI generation failed. Make sure your GEMINI_API_KEY is configured.");
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
+  const handlePublishGenerated = async () => {
+    if (!generatedArticle) return;
+    setIsPublishingGenerated(true);
+    try {
+      const res = await fetch("/api/blog/publish", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${blogApiKey}`
+        },
+        body: JSON.stringify({
+          title: generatedArticle.title,
+          content: generatedArticle.content,
+          tags: generatedArticle.tags,
+          excerpt: generatedArticle.excerpt
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || "Failed to publish");
+      }
+
+      triggerToast("Article published to live portfolio blog!");
+      setGeneratedArticle(null);
+      setAiTopic("");
+      await fetchBlogIndex(); // Reload list
+    } catch (err: any) {
+      console.error("Failed to publish AI post:", err);
+      triggerToast(`Publishing failed: ${err.message}`);
+    } finally {
+      setIsPublishingGenerated(false);
     }
   };
 
   return (
-    <nav 
-      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-        isScrolled ? "bg-surface-900/80 backdrop-blur-xl border-b border-surface-700 py-3" : "bg-transparent py-5"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="text-xl font-display font-bold tracking-tighter cursor-pointer"
-          onClick={() => navigate('/')}
-        >
-          JAVIS<span className="text-primary">.TECH</span>
-        </motion.div>
-
-        {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-          {navLinks.map((link, i) => (
-            <motion.button
-              key={link.name}
-              onClick={() => handleNavClick(link)}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className={`transition-colors hover:glow-sm ${
-                (pathname === link.href) ? "text-primary" : "text-slate-400 hover:text-primary"
-              }`}
-            >
-              {link.name}
-            </motion.button>
-          ))}
-          <motion.a
-            href="/#contact"
-            onClick={(e) => {
-              if (pathname === '/') {
-                e.preventDefault();
-                document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="px-5 py-2 bg-primary text-white rounded-full text-xs font-bold hover:glow-blue transition-all"
-          >
-            LET'S TALK
-          </motion.a>
-        </div>
-
-        {/* Mobile Toggle */}
-        <button 
-          className="md:hidden text-slate-200"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
+    <div id="portfolio-app-root" className="min-h-screen flex flex-col bg-surface-50 text-surface-900 dark:bg-surface-900 dark:text-surface-50 transition-colors duration-300 font-sans">
+      
+      {/* GLOBAL TOAST NOTIFICATION */}
       <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-surface-800 border-b border-surface-700 overflow-hidden"
+        {toast && (
+          <motion.div 
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            className="fixed bottom-6 right-6 z-50 bg-indigo-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 text-sm font-semibold border border-indigo-500/30"
           >
-            <div className="px-6 py-8 flex flex-col gap-6 items-center">
-              {navLinks.map((link) => (
-                <button
-                  key={link.name}
-                  onClick={() => handleNavClick(link)}
-                  className="text-lg font-display text-slate-300 hover:text-primary"
-                >
-                  {link.name}
-                </button>
-              ))}
-              <Link 
-                to="/admin" 
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-xs text-slate-600 hover:text-slate-400 font-mono flex items-center gap-2 mt-4"
-              >
-                <ShieldCheck size={12} /> Admin Dashboard
-              </Link>
-            </div>
+            <CheckCircle2 className="h-5 w-5 text-indigo-100" />
+            <span>{toast}</span>
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
-  );
-}
 
-// ... rest of the existing functional components (Hero, About, Skills, etc.) 
-// Note: I will keep them but wrap them in a Home component
-
-function Hero() {
-  return (
-    <section id="home" className="min-h-screen flex items-center pt-20 px-6 relative overflow-hidden">
-      {/* Background Glows */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto w-full grid md:grid-cols-2 gap-12 items-center">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold tracking-widest uppercase mb-6">
-            <Zap size={12} /> Embedded Systems Explorer
+      {/* HEADER / NAVIGATION BAR */}
+      <header className="sticky top-0 z-40 bg-surface-50/80 dark:bg-surface-900/80 backdrop-blur-md border-b border-surface-100 dark:border-surface-800 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+          
+          {/* Developer Brand Signature */}
+          <div className="flex items-center space-x-3.5">
+            <div className="p-2.5 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-600/20">
+              <Cpu className="h-5 w-5 animate-pulse" />
+            </div>
+            <div>
+              <h1 className="text-base font-extrabold tracking-tight">Javis</h1>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">Mechatronics Core</p>
+            </div>
           </div>
-          <h1 className="text-5xl sm:text-7xl md:text-8xl font-display font-bold leading-[0.9] mb-6 tracking-tighter">
-            Building the <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-400">Future</span> of IoT.
-          </h1>
-          <p className="text-base sm:text-lg text-slate-400 max-w-lg mb-8 leading-relaxed font-sans">
-            Technology enthusiast specializing in <span className="text-slate-200">ESP32 microcontrollers</span>, 
-            renewable energy innovation, and smart automation systems.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <a href="#projects" className="px-6 py-3 sm:px-8 sm:py-4 bg-primary text-white text-sm sm:text-base font-bold rounded-lg hover:glow-blue transition-all flex items-center gap-2 group">
-              View My Work <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-            </a>
-            <a href="#about" className="px-6 py-3 sm:px-8 sm:py-4 glass-card text-white text-sm sm:text-base font-bold rounded-lg hover:bg-surface-700 transition-all">
-              Learn More
-            </a>
-          </div>
-        </motion.div>
 
-        <div className="relative hidden md:block">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
-            whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1, type: "spring" }}
-            className="aspect-square glass-card rounded-3xl p-6 flex items-center justify-center relative z-10"
-          >
-            <div className="grid grid-cols-2 gap-4 w-full h-full">
+          {/* Desktop Tab Selector */}
+          <nav className="hidden md:flex items-center space-x-1 bg-surface-100/50 dark:bg-surface-800/50 p-1.5 rounded-xl border border-surface-100/30 dark:border-surface-800/30">
+            {([
+              { id: 'home', label: t('nav.home') },
+              { id: 'blog', label: t('nav.blog') },
+              { id: 'tasks', label: t('nav.tasks') },
+              { id: 'whoami', label: t('nav.whoami') },
+              { id: 'admin', label: t('nav.admin') }
+            ] as const).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setSelectedBlogId(null);
+                }}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all duration-150 relative ${
+                  activeTab === tab.id 
+                    ? "text-indigo-600 dark:text-indigo-400 bg-white dark:bg-surface-900 shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-surface-900 dark:hover:text-surface-50"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Utility Toolbar (Languages + Theme Switcher) */}
+          <div className="flex items-center space-x-3">
+            {/* Multilingual Selector */}
+            <div className="flex items-center space-x-1 bg-surface-100/40 dark:bg-surface-800/40 p-1 rounded-xl border border-surface-100/30 dark:border-surface-800/30">
               {[
-                { img: solarTrackerImg, label: "Solar Tracking" },
-                { img: rfidLockImg, label: "RFID Security" },
-                { img: iotDashboardImg, label: "IoT Controller" },
-                { img: labBenchImg, label: "R&D Lab" }
-              ].map((item, i) => (
-                <div key={i} className="group relative overflow-hidden rounded-2xl border border-surface-700 hover:border-primary/50 transition-all cursor-default">
-                  <img 
-                    src={item.img} 
-                    alt={item.label}
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-110 group-hover:scale-100"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-surface-900/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">{item.label}</span>
-                  </div>
-                </div>
+                { code: 'en', label: 'EN' },
+                { code: 'fr', label: 'FR' },
+                { code: 'sw', label: 'SW' }
+              ].map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => setLocale(lang.code as any)}
+                  className={`px-2.5 py-1.5 rounded-lg text-[10px] font-black transition-all duration-150 ${
+                    locale === lang.code 
+                      ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/10"
+                      : "text-gray-500 hover:text-surface-900 dark:hover:text-surface-50"
+                  }`}
+                >
+                  {lang.label}
+                </button>
               ))}
             </div>
-            {/* Floating tag */}
-            <div className="absolute -bottom-6 -right-6 p-4 glass-card rounded-2xl shadow-2xl animate-bounce">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
-                  <span className="block w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                </div>
-                <div>
-                  <div className="text-[10px] text-slate-500 uppercase font-bold">Current Status</div>
-                  <div className="text-sm font-bold text-slate-200">Innovating @ Home Lab</div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  );
-}
 
-function SectionHeading({ title, subtitle, icon: Icon }: { title: string; subtitle: string; icon?: any }) {
-  return (
-    <div className="mb-16">
-      <div className="flex items-center gap-2 text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">
-        {Icon && <Icon size={14} />} {subtitle}
-      </div>
-      <h2 className="text-4xl md:text-5xl font-display font-bold tracking-tight">{title}</h2>
-    </div>
-  );
-}
-
-function About() {
-  const profiles = [
-    {
-      title: "The Professional",
-      icon: Cpu,
-      content: "I am a motivated and innovative technology enthusiast with strong interests in embedded systems, automation, renewable energy, and smart security solutions. My experience spans ESP32 microcontrollers, RFID systems, Arduino programming, and solar tracking systems."
-    },
-    {
-      title: "The Student",
-      icon: BookOpen,
-      content: "Dedicated student with a strong passion for electronics, programming, and engineering innovation. Recognized for leadership abilities, teamwork, creativity, and a commitment to delivering tangible results through functional prototypes."
-    },
-    {
-      title: "The Leader",
-      icon: Users,
-      content: "A proactive and responsible leader with experience coordinating project activities, organizing budgets, and preparing strategic plans. I focus on motivating team members toward successful project realization and technical innovation."
-    }
-  ];
-
-  return (
-    <section id="about" className="py-24 px-6 bg-surface-900">
-      <div className="max-w-7xl mx-auto">
-        <SectionHeading 
-          title="Profile & Vision" 
-          subtitle="Identity" 
-          icon={Award}
-        />
-        
-        <div className="grid md:grid-cols-3 gap-8">
-          {profiles.map((profile, i) => (
-            <motion.div
-              key={profile.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.2 }}
-              className="glass-card p-10 rounded-2xl group hover:border-primary/50 transition-all flex flex-col"
+            {/* Dark Mode Switcher */}
+            <button
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="p-2.5 rounded-xl bg-surface-100 dark:bg-surface-800 hover:bg-surface-100/80 dark:hover:bg-surface-800/80 text-gray-500 dark:text-gray-300 border border-surface-100 dark:border-surface-800 transition-all duration-150"
+              aria-label="Toggle Theme"
             >
-              <div className="w-12 h-12 rounded-xl bg-surface-900 border border-surface-700 flex items-center justify-center text-primary mb-8 group-hover:scale-110 transition-transform">
-                <profile.icon size={24} />
+              {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+            </button>
+          </div>
+
+        </div>
+      </header>
+
+      {/* MOBILE TAB BAR */}
+      <nav className="md:hidden sticky top-20 z-30 bg-surface-50/95 dark:bg-surface-900/95 border-b border-surface-100 dark:border-surface-800 px-4 py-2.5 overflow-x-auto flex space-x-2 scrollbar-none transition-colors duration-300">
+        {([
+          { id: 'home', label: t('nav.home') },
+          { id: 'blog', label: t('nav.blog') },
+          { id: 'tasks', label: t('nav.tasks') },
+          { id: 'whoami', label: t('nav.whoami') },
+          { id: 'admin', label: t('nav.admin') }
+        ] as const).map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => {
+              setActiveTab(tab.id);
+              setSelectedBlogId(null);
+            }}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold shrink-0 transition-all ${
+              activeTab === tab.id 
+                ? "bg-indigo-600 text-white"
+                : "bg-surface-100 dark:bg-surface-800 text-gray-500 dark:text-gray-400"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
+      {/* MAIN CONTENT AREA */}
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+        <AnimatePresence mode="wait">
+          
+          {/* TAB 1: HOME (PORTFOLIO VIEW) */}
+          {activeTab === 'home' && (
+            <motion.div
+              key="home-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-16 animate-fade-in"
+            >
+              
+              {/* HERO SECTION */}
+              <section className="relative overflow-hidden rounded-3xl bg-radial from-indigo-900/10 via-transparent to-transparent py-12 md:py-20 border border-surface-100 dark:border-surface-800 bg-surface-100/20 dark:bg-surface-800/10 px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-10">
+                <div className="max-w-2xl space-y-6">
+                  {/* Banner tag */}
+                  <span className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-indigo-600/10 dark:bg-indigo-400/10 text-indigo-600 dark:text-indigo-400 text-xs font-black uppercase tracking-wider">
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400 animate-pulse"></span>
+                    <span>{t('hero.banner')}</span>
+                  </span>
+
+                  <h2 className="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+                    {t('hero.title')}
+                  </h2>
+
+                  <p className="text-sm md:text-base text-gray-600 dark:text-gray-300 leading-relaxed font-medium">
+                    {t('hero.tagline')}
+                  </p>
+
+                  {/* Actions bar */}
+                  <div className="flex flex-wrap gap-3.5 pt-2">
+                    <button
+                      onClick={() => setActiveTab('whoami')}
+                      className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-extrabold shadow-lg shadow-indigo-600/15 flex items-center space-x-2 transition-all duration-150"
+                    >
+                      <Info className="h-4.5 w-4.5" />
+                      <span>{t('hero.whoami')}</span>
+                    </button>
+
+                    <button
+                      onClick={() => handleCopyText(window.location.href, t('hero.copied') || "Link copied!")}
+                      className="px-6 py-3 bg-surface-100 dark:bg-surface-800 hover:bg-surface-100/80 dark:hover:bg-surface-800/80 rounded-xl text-xs font-extrabold border border-surface-100 dark:border-surface-800 flex items-center space-x-2 transition-all duration-150 text-gray-700 dark:text-gray-300"
+                    >
+                      <Clipboard className="h-4.5 w-4.5" />
+                      <span>{t('hero.share')}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Animated visual telemetry deck */}
+                <div className="w-full md:w-80 h-48 bg-surface-100 dark:bg-surface-800 rounded-2xl border border-surface-100 dark:border-surface-800/80 p-5 flex flex-col justify-between shrink-0 shadow-lg relative">
+                  <div className="absolute inset-0 bg-grid-pattern opacity-5 dark:opacity-10 pointer-events-none"></div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2.5">
+                      <Database className="h-4 w-4 text-indigo-500 animate-bounce" />
+                      <span className="text-[10px] font-black tracking-widest text-gray-500 uppercase">Live Sensor Mesh</span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-green-500/10 text-green-500 text-[8px] font-black uppercase tracking-widest">Wired</span>
+                  </div>
+
+                  <div className="space-y-4 my-3">
+                    <div>
+                      <div className="flex justify-between text-[10px] text-gray-500 font-bold mb-1">
+                        <span>Solar Tracking Yaw Angle</span>
+                        <span className="text-indigo-400 font-black">142.5°</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-surface-50 dark:bg-surface-900 rounded-full overflow-hidden border border-surface-100 dark:border-surface-800/60">
+                        <div className="h-full bg-indigo-600 rounded-full" style={{ width: '65%' }}></div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between text-[10px] text-gray-500 font-bold mb-1">
+                        <span>ACS712 Load Current</span>
+                        <span className="text-indigo-400 font-black">3.12 A</span>
+                      </div>
+                      <div className="h-1.5 w-full bg-surface-50 dark:bg-surface-900 rounded-full overflow-hidden border border-surface-100 dark:border-surface-800/60">
+                        <div className="h-full bg-indigo-600 rounded-full" style={{ width: '45%' }}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] font-black text-gray-500 border-t border-surface-50 dark:border-surface-900 pt-3">
+                    <span>MCU: ESP32-WROOM</span>
+                    <span className="text-green-500">SYS_OK</span>
+                  </div>
+                </div>
+              </section>
+
+              {/* INTERACTIVE PROJECTS GRID */}
+              <section className="space-y-8">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h3 className="text-xl md:text-2xl font-black tracking-tight">{t('projects.title')}</h3>
+                    <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">{t('projects.interactive_grid')}</p>
+                  </div>
+                  <span className="text-xs text-gray-400 font-bold bg-surface-100 dark:bg-surface-800 px-3 py-1.5 rounded-xl border border-surface-100 dark:border-surface-800">
+                    {PROJECTS.length} Core Systems
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {PROJECTS.map((proj) => (
+                    <div
+                      key={proj.id}
+                      className="group bg-white dark:bg-surface-800 rounded-2xl border border-surface-100 dark:border-surface-800 overflow-hidden shadow-md hover:shadow-xl dark:shadow-none hover:border-indigo-500/20 transition-all duration-300 flex flex-col justify-between"
+                    >
+                      <div>
+                        {/* Image Canvas */}
+                        <div className="h-44 overflow-hidden relative bg-surface-50 dark:bg-surface-900 border-b border-surface-100 dark:border-surface-800/40">
+                          <img
+                            src={proj.image}
+                            alt={proj.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            referrerPolicy="no-referrer"
+                          />
+                          <div className="absolute top-3 right-3 flex flex-wrap gap-1">
+                            {proj.tags.slice(0, 1).map((tag) => (
+                              <span key={tag} className="px-2.5 py-1 bg-surface-900/85 text-white text-[9px] font-black uppercase tracking-wider rounded-lg backdrop-blur-sm">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Project Brief */}
+                        <div className="p-5 space-y-3.5">
+                          <h4 className="font-extrabold text-sm tracking-tight text-indigo-600 dark:text-indigo-400">
+                            {proj.title}
+                          </h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-300 leading-relaxed font-semibold">
+                            {proj.shortDesc}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Case Study Entry Trigger */}
+                      <div className="px-5 pb-5 pt-1">
+                        <button
+                          onClick={() => setSelectedProject(proj)}
+                          className="w-full py-2.5 bg-surface-100 dark:bg-surface-900/50 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-extrabold border border-surface-100 dark:border-surface-800 flex items-center justify-center space-x-2 transition-all duration-150 group-hover:border-indigo-500/20"
+                        >
+                          <span>{t('projects.view_case_study')}</span>
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {/* DUAL SECTION: CERTIFICATION + LIVE GITHUB LOG */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-6">
+                
+                {/* Dassault Certification Segment */}
+                <section className="bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 p-6 md:p-8 flex flex-col justify-between space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3 text-indigo-600 dark:text-indigo-400">
+                      <BookOpen className="h-6 w-6" />
+                      <h3 className="font-black tracking-tight text-lg text-surface-900 dark:text-surface-50">
+                        {t('certifications.title')}
+                      </h3>
+                    </div>
+
+                    <div className="p-5 bg-surface-50 dark:bg-surface-900/60 rounded-2xl border border-surface-100 dark:border-surface-800/80 flex items-start space-x-4">
+                      <div className="h-12 w-12 rounded-xl bg-indigo-600 flex items-center justify-center font-black text-white text-xs shrink-0 shadow-lg shadow-indigo-600/10">
+                        3D
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-black text-surface-900 dark:text-surface-50 leading-snug">
+                          {t('certifications.badge_title')}
+                        </h4>
+                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                          Dassault Systèmes
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-semibold">
+                      {t('whoami.cert_desc')}
+                    </p>
+                  </div>
+
+                  <a
+                    href="https://www.credly.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center space-x-2 px-5 py-3 bg-surface-100 dark:bg-surface-900 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-extrabold border border-surface-100 dark:border-surface-800 transition-all duration-150 text-center text-gray-700 dark:text-gray-300"
+                  >
+                    <span>{t('certifications.view_credential')}</span>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </section>
+
+                {/* GitHub Sync Feed Segment */}
+                <section className="bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 p-6 md:p-8 space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <h3 className="text-base font-black tracking-tight">{t('commits.title')}</h3>
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">GitHub Live Sync</p>
+                    </div>
+                    <button
+                      onClick={fetchCommits}
+                      disabled={commitsLoading}
+                      className="p-2 bg-surface-100 dark:bg-surface-900 rounded-xl border border-surface-100 dark:border-surface-800 hover:bg-surface-100/80 dark:hover:bg-surface-900/80 transition-all text-gray-500 disabled:opacity-50"
+                      title={t('commits.refresh')}
+                    >
+                      <RefreshCw className={`h-3.5 w-3.5 ${commitsLoading ? 'animate-spin text-indigo-500' : ''}`} />
+                    </button>
+                  </div>
+
+                  <div className="space-y-3.5 min-h-48 flex flex-col justify-center">
+                    {commitsLoading ? (
+                      <div className="flex flex-col items-center justify-center space-y-2 py-8 text-xs text-gray-500 font-bold">
+                        <Loader2 className="h-5 w-5 animate-spin text-indigo-500" />
+                        <span>{t('commits.loading')}</span>
+                      </div>
+                    ) : commitsError || commits.length === 0 ? (
+                      <div className="text-center py-6 space-y-2 border border-dashed border-surface-100 dark:border-surface-800 rounded-2xl bg-surface-50/50 dark:bg-surface-900/30">
+                        <AlertCircle className="h-6 w-6 text-orange-500 mx-auto" />
+                        <h4 className="text-xs font-extrabold text-gray-500">{t('commits.error')}</h4>
+                        
+                        {/* Static offline mock fallback layout */}
+                        <div className="max-w-xs mx-auto text-left text-[10px] text-gray-400 dark:text-gray-500 space-y-2 pt-3 border-t border-surface-100 dark:border-surface-800">
+                          <div className="flex items-center justify-between font-bold">
+                            <span>solar-tracking-PID</span>
+                            <span className="font-mono text-indigo-500">a5c3e7f</span>
+                          </div>
+                          <p className="truncate font-semibold text-gray-500">feat: optimize solar tracking PID loop coefficients</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {commits.map((commit, idx) => (
+                          <div
+                            key={commit.sha + idx}
+                            className="p-3 bg-surface-50 dark:bg-surface-900/60 rounded-xl border border-surface-100 dark:border-surface-800/80 flex items-start space-x-3 text-xs"
+                          >
+                            <div className="mt-0.5 h-2 w-2 rounded-full bg-indigo-500 shrink-0"></div>
+                            <div className="min-w-0 flex-1 space-y-1.5">
+                              <div className="flex items-center justify-between text-[10px] font-bold">
+                                <span className="text-indigo-600 dark:text-indigo-400 truncate max-w-40">{commit.repoName}</span>
+                                <a 
+                                  href={commit.commitUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="font-mono text-gray-400 hover:text-indigo-400 underline"
+                                >
+                                  {commit.sha}
+                                </a>
+                              </div>
+                              <p className="text-gray-600 dark:text-gray-300 truncate font-semibold leading-relaxed">
+                                {commit.message}
+                              </p>
+                              <div className="flex justify-between items-center text-[9px] text-gray-400 font-bold">
+                                <span>Author: {commit.author}</span>
+                                <span>{new Date(commit.date).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </section>
               </div>
-              <h3 className="text-xl font-display font-bold mb-4">{profile.title}</h3>
-              <p className="text-slate-400 text-sm leading-relaxed flex-grow">{profile.content}</p>
+
             </motion.div>
-          ))}
-        </div>
+          )}
 
-        <motion.div 
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="mt-16 p-8 rounded-3xl bg-gradient-to-r from-primary/10 to-indigo-500/10 border border-primary/20 flex flex-col md:flex-row items-center justify-between gap-8"
-        >
-          <div className="max-w-2xl text-center md:text-left">
-            <h4 className="text-lg font-bold mb-2">My Motivation</h4>
-            <p className="text-sm text-slate-400 italic">"I am passionate about solving real-world problems through technology and practical engineering solutions. Turning ideas into functional prototypes is my core drive."</p>
-          </div>
-          <div className="flex gap-4">
-            {['Creative', 'Ambitious', 'Disciplined', 'Adaptive'].map(trait => (
-              <span key={trait} className="px-3 py-1 bg-surface-900 rounded-md border border-surface-700 text-[10px] uppercase font-bold text-slate-500">
-                {trait}
-              </span>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-function Skills() {
-  const categories = [
-    {
-      name: "Core Hardware",
-      skills: ["ESP32 / Arduino", "Embedded Systems", "Sensors & Actuators", "Relay Control Systems"]
-    },
-    {
-      name: "Integration",
-      skills: ["RFID Systems", "Keypad & LCD", "IoT Systems", "Solar Tracking"]
-    },
-    {
-      name: "Software & Digital",
-      skills: ["C++ / Arduino IDE", "Digital Innovation", "Basic Web Tools", "System Design"]
-    },
-    {
-      name: "Management",
-      skills: ["Project Planning", "Budgeting", "Team Coordination", "Troubleshooting"]
-    }
-  ];
-
-  return (
-    <section id="skills" className="py-24 px-6 relative">
-      <div className="max-w-7xl mx-auto">
-        <SectionHeading title="Technical Stack" subtitle="Expertise" icon={Zap} />
-        
-        <div className="grid md:grid-cols-4 gap-4">
-          {categories.map((cat, i) => (
+          {/* TAB 2: INTERACTIVE BLOG */}
+          {activeTab === 'blog' && (
             <motion.div
-              key={cat.name}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="space-y-3"
+              key="blog-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-8 animate-fade-in"
             >
-              <h4 className="font-mono text-[10px] text-primary uppercase tracking-widest px-4 border-l border-primary/30 ml-2 mb-4">
-                {cat.name}
-              </h4>
-              <div className="flex flex-col gap-2">
-                {cat.skills.map((skill) => (
-                  <div key={skill} className="px-4 py-3 bg-surface-800 border border-surface-700 rounded-lg text-sm text-slate-300 font-medium hover:bg-surface-700 transition-colors">
-                    {skill}
+              
+              <div className="border-b border-surface-100 dark:border-surface-800 pb-5">
+                <h2 className="text-2xl md:text-3xl font-black tracking-tight">{t('nav.blog')}</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mt-1">Written Columns & Firmware Walkthroughs</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                {/* Left Side: Articles list */}
+                <div className="lg:col-span-5 space-y-4">
+                  {blogsLoading ? (
+                    <div className="flex flex-col items-center justify-center py-12 text-gray-400 space-y-3">
+                      <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
+                      <span className="text-xs font-semibold">Loading blog rolls...</span>
+                    </div>
+                  ) : dynamicBlogIndex.length === 0 ? (
+                    <div className="text-center py-12 text-gray-400 text-xs font-semibold">No articles published yet.</div>
+                  ) : (
+                    dynamicBlogIndex.map((article, idx) => (
+                      <button
+                        key={article.id}
+                        onClick={() => setSelectedBlogId(article.id)}
+                        className={`w-full text-left p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-3.5 ${
+                          selectedBlogId === article.id || (!selectedBlogId && idx === 0)
+                            ? "bg-indigo-600/5 dark:bg-indigo-400/5 border-indigo-600/30 dark:border-indigo-400/30"
+                            : "bg-white dark:bg-surface-800 border-surface-100 dark:border-surface-800 hover:bg-surface-100/50 dark:hover:bg-surface-800/80"
+                        }`}
+                      >
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap gap-1">
+                            {article.tags.slice(0, 3).map((tag: string) => (
+                              <span key={tag} className="text-[9px] font-black tracking-widest text-indigo-600 dark:text-indigo-400 uppercase bg-indigo-600/10 dark:bg-indigo-400/10 px-2 py-0.5 rounded-lg">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                          <h3 className="font-extrabold text-sm tracking-tight text-surface-900 dark:text-surface-50 leading-snug">
+                            {article.title}
+                          </h3>
+                          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 font-semibold">
+                            {article.excerpt}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[10px] text-gray-400 font-bold pt-2 border-t border-surface-50 dark:border-surface-900/60 w-full">
+                          <span>Javis</span>
+                          <span>{new Date(article.date).toLocaleDateString()}</span>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+
+                {/* Right Side: Active Reader Panel */}
+                <div className="lg:col-span-7 bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 p-6 md:p-8 min-h-96">
+                  {(() => {
+                    const activeId = selectedBlogId || dynamicBlogIndex[0]?.id || "esp32-journey";
+                    
+                    if (activeArticleLoading) {
+                      return (
+                        <div className="flex flex-col items-center justify-center py-24 text-gray-400 space-y-3 h-full">
+                          <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+                          <span className="text-xs font-semibold">Loading article body...</span>
+                        </div>
+                      );
+                    }
+
+                    const article = loadedArticles[activeId];
+                    if (!article) return <div className="text-center py-12 text-gray-400">Select an article to begin reading.</div>;
+
+                    return (
+                      <div className="space-y-6">
+                        <div className="space-y-3 border-b border-surface-100 dark:border-surface-800/80 pb-5">
+                          <div className="flex flex-wrap gap-1.5">
+                            {article.tags.map((tag: string) => (
+                              <span key={tag} className="text-[10px] font-black tracking-widest text-indigo-600 dark:text-indigo-400 uppercase bg-indigo-600/10 dark:bg-indigo-400/10 px-2.5 py-1 rounded-xl">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                          <h1 className="text-xl md:text-3xl font-black tracking-tight text-surface-900 dark:text-surface-50 leading-tight">
+                            {article.title}
+                          </h1>
+                          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">
+                            Published {new Date(article.date).toLocaleDateString()} by Javis
+                          </p>
+                        </div>
+
+                        {/* Beautifully Rendered Markdown Prose */}
+                        <div className="prose dark:prose-invert prose-sm max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:font-medium prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-li:text-gray-600 dark:prose-li:text-gray-300 prose-img:rounded-2xl prose-strong:font-bold prose-code:text-indigo-600 dark:prose-code:text-indigo-400">
+                          <Markdown>{article.content}</Markdown>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+              </div>
+
+            </motion.div>
+          )}
+
+          {/* TAB 3: TASKS PLANNER */}
+          {activeTab === 'tasks' && (
+            <motion.div
+              key="tasks-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-8 animate-fade-in"
+            >
+              
+              <div className="border-b border-surface-100 dark:border-surface-800 pb-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl md:text-3xl font-black tracking-tight">{t('tasks.title')}</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mt-1">{t('tasks.tagline')}</p>
+                </div>
+                <div className="flex space-x-2 shrink-0">
+                  <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-600/10 dark:bg-indigo-400/10 px-3.5 py-2 rounded-xl">
+                    {tasks.filter(t => t.status === 'Completed').length} / {tasks.length} Done
+                  </span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                {/* Left: Input Console */}
+                <div className="lg:col-span-4 bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 p-6 flex flex-col justify-between">
+                  <form onSubmit={handleAddTask} className="space-y-5">
+                    <h3 className="font-extrabold text-sm text-surface-900 dark:text-surface-50 tracking-tight pb-3 border-b border-surface-50 dark:border-surface-900">
+                      {t('tasks.add')}
+                    </h3>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Task Title / Requirement</label>
+                      <input
+                        type="text"
+                        required
+                        value={newTaskTitle}
+                        onChange={(e) => setNewTaskTitle(e.target.value)}
+                        placeholder="e.g., Lay out custom SPI isolator terminals"
+                        className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 text-xs font-semibold rounded-xl border border-surface-100 dark:border-surface-800 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-400 transition"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">System Domain</label>
+                      <select
+                        value={newTaskCategory}
+                        onChange={(e) => setNewTaskCategory(e.target.value as any)}
+                        className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 text-xs font-bold rounded-xl border border-surface-100 dark:border-surface-800 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-400 transition"
+                      >
+                        <option value="Firmware">Firmware Development</option>
+                        <option value="Hardware">Hardware Schematics</option>
+                        <option value="PCB">PCB Layout Design</option>
+                        <option value="Testing">Calibration & Testing</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{t('tasks.priority')}</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {['Low', 'Medium', 'High'].map((p) => (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setNewTaskPriority(p as any)}
+                            className={`py-2 text-[10px] font-black uppercase tracking-wider rounded-lg border transition ${
+                              newTaskPriority === p 
+                                ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                                : "bg-surface-50 dark:bg-surface-900 text-gray-500 border-surface-100 dark:border-surface-800"
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-600/15 flex items-center justify-center space-x-2 transition"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>Create Log Item</span>
+                    </button>
+                  </form>
+
+                  <div className="pt-6 mt-6 border-t border-surface-50 dark:border-surface-900/60 text-[10px] text-gray-400 font-semibold space-y-1.5">
+                    <p className="flex items-center space-x-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500"></span>
+                      <span>Click checkboxes to step through task statuses.</span>
+                    </p>
+                    <p className="flex items-center space-x-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500"></span>
+                      <span>Tasks auto-saved securely to local storage.</span>
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right: Active Board Panel */}
+                <div className="lg:col-span-8 bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 p-6 md:p-8 space-y-4">
+                  {tasks.length === 0 ? (
+                    <div className="text-center py-20 space-y-3">
+                      <Check className="h-10 w-10 text-green-500 mx-auto" />
+                      <h3 className="font-extrabold text-sm text-surface-900 dark:text-surface-50">Clear Board!</h3>
+                      <p className="text-xs text-gray-400 font-semibold">No active embedded development logs registered.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3.5">
+                      {tasks.map((task) => (
+                        <div
+                          key={task.id}
+                          className={`p-4 rounded-2xl border flex items-start justify-between gap-4 transition-all ${
+                            task.status === 'Completed'
+                              ? "bg-surface-50/55 dark:bg-surface-900/20 border-surface-100/50 dark:border-surface-850/20 opacity-60"
+                              : "bg-surface-50 dark:bg-surface-900/40 border-surface-100 dark:border-surface-800"
+                          }`}
+                        >
+                          <div className="flex items-start space-x-3.5 min-w-0">
+                            {/* Interactive toggle block */}
+                            <button
+                              onClick={() => handleToggleTaskStatus(task.id)}
+                              className={`mt-0.5 h-5.5 w-5.5 rounded-xl border flex items-center justify-center transition shrink-0 ${
+                                task.status === 'Completed'
+                                  ? "bg-green-500 border-green-500 text-white"
+                                  : task.status === 'In Progress'
+                                  ? "bg-indigo-600 border-indigo-600 text-white"
+                                  : "border-gray-300 dark:border-surface-700 hover:border-indigo-500"
+                              }`}
+                            >
+                              {task.status === 'Completed' && <Check className="h-3 w-3" />}
+                              {task.status === 'In Progress' && <span className="h-1.5 w-1.5 rounded-full bg-white"></span>}
+                            </button>
+
+                            <div className="space-y-1.5 min-w-0">
+                              <h4 className={`text-xs font-extrabold tracking-tight ${task.status === 'Completed' ? 'line-through text-gray-500' : 'text-surface-900 dark:text-surface-50'}`}>
+                                {task.title}
+                              </h4>
+                              
+                              {/* Metadata indicators */}
+                              <div className="flex flex-wrap items-center gap-2.5 text-[9px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                                <span className="px-2 py-0.5 bg-surface-100 dark:bg-surface-800 rounded-lg text-indigo-600 dark:text-indigo-400 font-bold">
+                                  {task.category}
+                                </span>
+                                <span className={`px-2 py-0.5 rounded-lg ${
+                                  task.priority === 'High' ? 'text-red-500 bg-red-500/10' :
+                                  task.priority === 'Medium' ? 'text-orange-500 bg-orange-500/10' :
+                                  'text-gray-400 bg-surface-100 dark:bg-surface-800'
+                                }`}>
+                                  {task.priority} Priority
+                                </span>
+                                <span className="font-bold">
+                                  {task.status}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            onClick={() => handleDeleteTask(task.id)}
+                            className="p-2 text-gray-400 hover:text-red-500 rounded-xl hover:bg-red-500/5 border border-transparent hover:border-red-500/10 transition"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+              </div>
+
+            </motion.div>
+          )}
+
+          {/* TAB 4: WHO AM I & CHATBOT */}
+          {activeTab === 'whoami' && (
+            <motion.div
+              key="whoami-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-12 animate-fade-in"
+            >
+              
+              {/* BIOGRAPHY AREA */}
+              <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                {/* Left Side: Biography Texts */}
+                <div className="lg:col-span-7 bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 p-6 md:p-8 space-y-6">
+                  <div className="space-y-2">
+                    <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-widest bg-indigo-600/10 dark:bg-indigo-400/10 px-3 py-1 rounded-xl inline-block">
+                      {t('whoami.tag')}
+                    </span>
+                    <h2 className="text-2xl md:text-3xl font-black tracking-tight">{t('whoami.title')}</h2>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 font-extrabold uppercase tracking-wider">{t('whoami.tagline')}</p>
+                  </div>
+
+                  <div className="space-y-4 text-xs font-semibold text-gray-600 dark:text-gray-300 leading-relaxed">
+                    <p>{t('whoami.journey_p1')}</p>
+                    <p>{t('whoami.journey_p2')}</p>
+                    <p>{t('whoami.journey_p3')}</p>
+                    <p>{t('whoami.journey_p4')}</p>
+                  </div>
+
+                  {/* Core specialty matrix */}
+                  <div className="space-y-3 pt-4 border-t border-surface-50 dark:border-surface-900/60">
+                    <h4 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{t('whoami.qualifications')}</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="p-3.5 bg-surface-50 dark:bg-surface-900/55 rounded-xl border border-surface-100 dark:border-surface-800/80">
+                        <span className="text-[9px] text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-wider block mb-0.5">{t('whoami.bachelors')}</span>
+                        <h5 className="text-xs font-extrabold text-surface-900 dark:text-surface-50 leading-snug">{t('whoami.bachelors_field')}</h5>
+                      </div>
+                      <div className="p-3.5 bg-surface-50 dark:bg-surface-900/55 rounded-xl border border-surface-100 dark:border-surface-800/80">
+                        <span className="text-[9px] text-indigo-600 dark:text-indigo-400 font-black uppercase tracking-wider block mb-0.5">{t('whoami.hnd')}</span>
+                        <h5 className="text-xs font-extrabold text-surface-900 dark:text-surface-50 leading-snug">{t('whoami.hnd_field')}</h5>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Side: Mission statement card */}
+                <div className="lg:col-span-5 bg-gradient-to-tr from-indigo-900/10 via-indigo-900/5 to-transparent bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 p-6 md:p-8 space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="font-black text-lg text-indigo-600 dark:text-indigo-400 flex items-center space-x-2.5">
+                      <Heart className="h-5 w-5 animate-pulse" />
+                      <span>{t('whoami.mission_title')}</span>
+                    </h3>
+                    <blockquote className="border-l-4 border-indigo-600 pl-4 text-xs italic font-semibold text-gray-500 dark:text-gray-400 leading-relaxed py-1.5">
+                      {t('whoami.mission_quote')}
+                    </blockquote>
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 leading-relaxed">
+                      {t('whoami.mission_p1')}
+                    </p>
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 leading-relaxed">
+                      {t('whoami.mission_p2')}
+                    </p>
+                  </div>
+
+                  <div className="pt-6 border-t border-surface-50 dark:border-surface-900/60 flex items-center justify-between text-[11px] font-black uppercase text-gray-400">
+                    <span>Engineering Goal</span>
+                    <span className="text-indigo-500">Zero-Overload Efficiency</span>
+                  </div>
+                </div>
+
+              </section>
+
+              {/* INTEGRATED CHATBOT INTERFACE */}
+              <section className="bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 overflow-hidden flex flex-col h-144">
+                
+                {/* Chat header */}
+                <div className="px-6 py-5 border-b border-surface-100 dark:border-surface-800 flex items-center justify-between bg-surface-50/50 dark:bg-surface-900/10">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                      <MessageSquare className="h-4.5 w-4.5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-surface-900 dark:text-surface-50">{t('chatbot.title')}</h3>
+                      <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">{t('chatbot.tagline')}</p>
+                    </div>
+                  </div>
+                  <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" title="AI Core Connected"></span>
+                </div>
+
+                {/* Messages scroller */}
+                <div className="flex-1 p-6 overflow-y-auto space-y-4 bg-surface-50/20 dark:bg-surface-900/10">
+                  {chatMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div className={`max-w-xl rounded-2xl p-4 text-xs font-medium leading-relaxed ${
+                        msg.sender === 'user'
+                          ? "bg-indigo-600 text-white rounded-tr-none shadow-md shadow-indigo-600/5"
+                          : "bg-surface-50 dark:bg-surface-900 text-surface-900 dark:text-surface-50 border border-surface-100 dark:border-surface-800/80 rounded-tl-none"
+                      }`}>
+                        <p>{msg.text}</p>
+                        <span className={`text-[8px] font-black block mt-2.5 ${msg.sender === 'user' ? 'text-indigo-200' : 'text-gray-400 uppercase tracking-widest'}`}>
+                          {msg.timestamp}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {chatLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-surface-50 dark:bg-surface-900 border border-surface-100 dark:border-surface-800/80 rounded-2xl rounded-tl-none p-4 flex items-center space-x-2 text-xs font-bold text-gray-400 uppercase tracking-widest">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-500" />
+                        <span>Generating answer...</span>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={chatEndRef}></div>
+                </div>
+
+                {/* Chat footer preset chips & input bar */}
+                <div className="p-5 border-t border-surface-100 dark:border-surface-800 bg-surface-50/30 dark:bg-surface-900/10 space-y-4">
+                  {/* Shortcut queries chips */}
+                  <div className="flex flex-wrap gap-2.5">
+                    {[
+                      { label: "ESP32 Experience", query: "Tell me about your ESP32 microcontroller experience." },
+                      { label: "Portfolio Projects", query: "What are your core mechatronics projects?" },
+                      { label: "Credentials", query: "What are your academic and engineering qualifications?" },
+                      { label: "Project Availability", query: "Are you open to contract or freelance hardware work?" }
+                    ].map((chip) => (
+                      <button
+                        key={chip.label}
+                        disabled={chatLoading}
+                        onClick={() => handleSendMessage(chip.query)}
+                        className="px-3.5 py-2 bg-white dark:bg-surface-900 hover:bg-indigo-600 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-wider border border-surface-100 dark:border-surface-800 transition disabled:opacity-50 text-gray-500"
+                      >
+                        {chip.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Typing inputs */}
+                  <div className="flex space-x-3.5">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                      placeholder={t('chatbot.input_placeholder') || "Ask me about my qualifications..."}
+                      className="flex-1 px-4 py-3 bg-white dark:bg-surface-900 text-xs font-semibold rounded-xl border border-surface-100 dark:border-surface-800 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-400 transition"
+                    />
+                    <button
+                      onClick={() => handleSendMessage()}
+                      disabled={!chatInput.trim() || chatLoading}
+                      className="px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex items-center justify-center transition disabled:opacity-50"
+                    >
+                      <Send className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+              </section>
+
+            </motion.div>
+          )}
+
+          {/* TAB 5: ADMIN SYSTEM CONFIG */}
+          {activeTab === 'admin' && (
+            <motion.div
+              key="admin-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-8 animate-fade-in"
+            >
+              
+              <div className="border-b border-surface-100 dark:border-surface-800 pb-5">
+                <h2 className="text-2xl md:text-3xl font-black tracking-tight">{t('admin.title')}</h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mt-1">Configure Claude Webhooks & Generate Dynamic Posts</p>
+              </div>
+
+              {/* Grid with statistics cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: "Live Site Views", val: mockStats.views, unit: "Unique Hits" },
+                  { label: "Inbox Submissions", val: mockStats.submissions, unit: "Contact Messages" },
+                  { label: "API Handshake Latency", val: mockStats.apiLatency, unit: "Client-to-Gemini" },
+                  { label: "External Blog Webhooks", val: "Online", unit: "Claude / API Endpoint" },
+                ].map((stat, idx) => (
+                  <div key={idx} className="p-5 bg-white dark:bg-surface-800 rounded-2xl border border-surface-100 dark:border-surface-800 flex flex-col justify-between h-28 shadow-sm">
+                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none">{stat.label}</span>
+                    <div className="text-xl md:text-2xl font-black text-indigo-600 dark:text-indigo-400">{stat.val}</div>
+                    <span className="text-[9px] text-gray-400 font-semibold leading-none">{stat.unit}</span>
                   </div>
                 ))}
               </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                {/* Left Column: Webhook Setup & Manual Draft */}
+                <div className="lg:col-span-6 space-y-8">
+                  
+                  {/* Claude & External AI Connection Center */}
+                  <div className="bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 p-6 md:p-8 space-y-6">
+                    <div className="flex items-center space-x-3 pb-3 border-b border-surface-50 dark:border-surface-900">
+                      <div className="p-2 bg-indigo-600/10 text-indigo-600 rounded-xl">
+                        <Key className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-sm text-surface-900 dark:text-surface-50 tracking-tight leading-tight">
+                          Claude / External LLM Webhook Setup
+                        </h3>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Integrate External AI Agents programmatically</p>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-semibold">
+                      You can authorize Claude, ChatGPT, or custom scripts to programmatically publish mechatronics articles directly to this portfolio blog.
+                    </p>
+
+                    {/* API Secret Input with Toggle */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Your Security Token (Authorization Header)</label>
+                      <div className="flex items-center space-x-2 bg-surface-50 dark:bg-surface-900 p-1.5 rounded-xl border border-surface-100 dark:border-surface-800">
+                        <input
+                          type={showApiKey ? "text" : "password"}
+                          value={blogApiKey}
+                          onChange={(e) => setBlogApiKey(e.target.value)}
+                          placeholder="Secret token"
+                          className="flex-1 bg-transparent border-none text-xs font-mono px-2.5 py-1.5 focus:outline-none focus:ring-0 text-surface-900 dark:text-surface-50"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowApiKey(!showApiKey)}
+                          className="p-2 text-gray-400 hover:text-indigo-500 transition"
+                          title="Show/Hide Token"
+                        >
+                          {showApiKey ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyText(blogApiKey, "API Token copied!")}
+                          className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                          title="Copy Token"
+                        >
+                          <Clipboard className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Webhook API URL */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">Dynamic Webhook URL</label>
+                      <div className="flex items-center space-x-2 bg-surface-50 dark:bg-surface-900 p-1.5 rounded-xl border border-surface-100 dark:border-surface-800">
+                        <span className="flex-1 text-xs font-mono px-2.5 py-1.5 select-all overflow-x-auto whitespace-nowrap text-indigo-600 dark:text-indigo-400 font-bold">
+                          {window.location.origin}/api/blog/publish
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyText(`${window.location.origin}/api/blog/publish`, "Webhook URL copied!")}
+                          className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                          title="Copy URL"
+                        >
+                          <Clipboard className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Copyable Claude JSON tool Schema */}
+                    <div className="space-y-2.5 pt-3 border-t border-surface-50 dark:border-surface-900/60">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Claude Projects Tool definition (JSON Schema)</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyText(JSON.stringify({
+                            name: "publish_blog_post",
+                            description: "Publish a deep technical blog post directly to Javis's mechatronics and embedded systems portfolio blog.",
+                            input_schema: {
+                              type: "object",
+                              properties: {
+                                title: { type: "string", description: "The title of the article" },
+                                content: { type: "string", description: "The complete, rich article written in Markdown format with code blocks" },
+                                tags: { type: "array", items: { type: "string" }, description: "List of relevant tags (e.g. ['ESP32', 'Firmware'])" },
+                                excerpt: { type: "string", description: "Snappy 1-2 sentence article summary" }
+                              },
+                              required: ["title", "content"]
+                            }
+                          }, null, 2), "Claude Tool Schema copied!")}
+                          className="text-[10px] text-indigo-500 hover:text-indigo-600 font-extrabold flex items-center space-x-1"
+                        >
+                          <Clipboard className="h-3.5 w-3.5" />
+                          <span>Copy Schema</span>
+                        </button>
+                      </div>
+                      <div className="p-3 bg-surface-50 dark:bg-surface-900 rounded-xl border border-surface-100 dark:border-surface-800 text-[10px] font-mono text-gray-400 max-h-36 overflow-y-auto leading-normal">
+                        <pre>{JSON.stringify({
+                          name: "publish_blog_post",
+                          description: "Publish a deep technical blog post directly to Javis's mechatronics and embedded systems portfolio blog.",
+                          input_schema: {
+                            type: "object",
+                            properties: {
+                              title: { type: "string", description: "The title of the article" },
+                              content: { type: "string", description: "The complete, rich article written in Markdown format with code blocks" },
+                              tags: { type: "array", items: { type: "string" }, description: "List of relevant tags (e.g. ['ESP32', 'Firmware'])" },
+                              excerpt: { type: "string", description: "Snappy 1-2 sentence article summary" }
+                            },
+                            required: ["title", "content"]
+                          }
+                        }, null, 2)}</pre>
+                      </div>
+                    </div>
+
+                    {/* Copyable Claude System Prompt Instructions */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Claude System Prompt Instructions</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyText(`You are an expert mechatronics writer connected to Javis's website. Draft a high-fidelity, deep technical walkthrough about [Topic]. Make sure to include detailed hardware schematics specifications and firmware routines. Once complete, call the publish_blog_post tool using: URL: "${window.location.origin}/api/blog/publish" with Bearer Authorization token: "${blogApiKey}"`, "Claude Instructions copied!")}
+                          className="text-[10px] text-indigo-500 hover:text-indigo-600 font-extrabold flex items-center space-x-1"
+                        >
+                          <Clipboard className="h-3.5 w-3.5" />
+                          <span>Copy prompt</span>
+                        </button>
+                      </div>
+                      <p className="bg-surface-50 dark:bg-surface-900 p-3 rounded-xl border border-surface-100 dark:border-surface-800 text-[10px] text-gray-400 leading-relaxed font-semibold">
+                        "You are an expert mechatronics writer connected to Javis's website. Draft a high-fidelity, deep technical walkthrough about [Topic] and call the publish_blog_post tool..."
+                      </p>
+                    </div>
+
+                  </div>
+
+                  {/* Manual Technical Post Composer */}
+                  <div className="bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 p-6 md:p-8 space-y-5">
+                    <div className="flex items-center space-x-3 pb-3 border-b border-surface-50 dark:border-surface-900">
+                      <div className="p-2 bg-indigo-600/10 text-indigo-600 rounded-xl">
+                        <Code className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-sm text-surface-900 dark:text-surface-50 tracking-tight leading-tight">
+                          Draft a Technical Post (Markdown Sandbox)
+                        </h3>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Write and compile manual logs</p>
+                      </div>
+                    </div>
+
+                    <form onSubmit={handlePublishDraft} className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Article Title</label>
+                          <input
+                            type="text"
+                            required
+                            value={adminBlogDraftTitle}
+                            onChange={(e) => setAdminBlogDraftTitle(e.target.value)}
+                            placeholder="e.g., Designing PCB Low-Noise Ground Planes"
+                            className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 text-xs font-semibold rounded-xl border border-surface-100 dark:border-surface-800 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-400 transition"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Tags (comma separated)</label>
+                          <input
+                            type="text"
+                            value={adminBlogDraftTags}
+                            onChange={(e) => setAdminBlogDraftTags(e.target.value)}
+                            placeholder="PCB, Hardware, Grounding"
+                            className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 text-xs font-semibold rounded-xl border border-surface-100 dark:border-surface-800 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-400 transition"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Markdown Content</label>
+                        <textarea
+                          rows={8}
+                          value={adminBlogDraftContent}
+                          onChange={(e) => setAdminBlogDraftContent(e.target.value)}
+                          placeholder="## Introduction..."
+                          className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 text-xs font-semibold rounded-xl border border-surface-100 dark:border-surface-800 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-400 transition"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-600/15 transition"
+                      >
+                        Publish Manual Post Live
+                      </button>
+                    </form>
+                  </div>
+
+                </div>
+
+                {/* Right Column: Direct AI Blogger Sandbox & Status */}
+                <div className="lg:col-span-6 space-y-8">
+                  
+                  {/* Direct AI Blogging Sandbox (Gemini powered) */}
+                  <div className="bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 p-6 md:p-8 space-y-6">
+                    <div className="flex items-center space-x-3 pb-3 border-b border-surface-50 dark:border-surface-900">
+                      <div className="p-2 bg-indigo-600/10 text-indigo-600 rounded-xl">
+                        <Cpu className="h-5 w-5 animate-pulse" />
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-sm text-surface-900 dark:text-surface-50 tracking-tight leading-tight">
+                          Interactive AI Article Writer Sandbox
+                        </h3>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Let Gemini draft premium mechatronics columns</p>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-semibold">
+                      Test Javis's exact blogging persona instantly. Choose a mechatronics topic (e.g. "ESP32 SPI telemetry arrays", "Sizing H-Bridge MOSFET gates") and style to generate a rich markdown post.
+                    </p>
+
+                    <form onSubmit={handleGenerateWithAI} className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Generate Topic</label>
+                          <input
+                            type="text"
+                            required
+                            value={aiTopic}
+                            onChange={(e) => setAiTopic(e.target.value)}
+                            placeholder="e.g. ESP32 interrupts & safety gates"
+                            className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 text-xs font-semibold rounded-xl border border-surface-100 dark:border-surface-800 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-400 transition"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Writing Style</label>
+                          <select
+                            value={aiStyle}
+                            onChange={(e) => setAiStyle(e.target.value)}
+                            className="w-full px-4 py-3 bg-surface-50 dark:bg-surface-900 text-xs font-semibold rounded-xl border border-surface-100 dark:border-surface-800 focus:outline-none focus:border-indigo-600 dark:focus:border-indigo-400 transition"
+                          >
+                            <option value="Deep Tutorial/Walkthrough">Deep Tutorial/Walkthrough</option>
+                            <option value="Hardware Architecture Review">Hardware Architecture Review</option>
+                            <option value="Firmware Walkthrough & Snippets">Firmware Walkthrough & Snippets</option>
+                            <option value="Industry Perspective Column">Industry Perspective Column</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={aiGenerating || !aiTopic.trim()}
+                        className="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-600/15 transition flex items-center justify-center space-x-2.5 disabled:opacity-50"
+                      >
+                        {aiGenerating ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Gemini Drafting Post...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Cpu className="h-4 w-4" />
+                            <span>Draft Article with Gemini</span>
+                          </>
+                        )}
+                      </button>
+                    </form>
+
+                    {/* Render AI Draft Preview if exists */}
+                    {generatedArticle && (
+                      <div className="pt-4 border-t border-surface-50 dark:border-surface-900/60 space-y-4 animate-fade-in">
+                        <div className="p-4 bg-surface-50 dark:bg-surface-900 rounded-2xl border border-surface-100 dark:border-surface-800 space-y-3.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-black tracking-widest text-indigo-600 dark:text-indigo-400 uppercase bg-indigo-600/10 dark:bg-indigo-400/10 px-2.5 py-1 rounded-xl">
+                              Generated Draft Preview
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setGeneratedArticle(null)}
+                              className="text-[10px] text-gray-400 hover:text-red-500 font-extrabold"
+                            >
+                              Discard
+                            </button>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <h4 className="text-sm font-black text-surface-900 dark:text-surface-50">{generatedArticle.title}</h4>
+                            <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">
+                              Tags: {generatedArticle.tags?.join(", ")}
+                            </p>
+                          </div>
+
+                          <div className="p-3.5 bg-white dark:bg-surface-800 rounded-xl border border-surface-100 dark:border-surface-900/60 max-h-48 overflow-y-auto text-[11px] prose dark:prose-invert leading-relaxed font-medium">
+                            <Markdown>{generatedArticle.content}</Markdown>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handlePublishGenerated}
+                            disabled={isPublishingGenerated}
+                            className="w-full py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-black flex items-center justify-center space-x-2 transition shadow-lg shadow-green-600/15 disabled:opacity-50"
+                          >
+                            {isPublishingGenerated ? (
+                              <>
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                <span>Publishing to Live Blog...</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle2 className="h-4 w-4" />
+                                <span>Publish Live to Portfolio Blog</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                  </div>
+
+                  {/* System Status Monitor */}
+                  <div className="bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 p-6 md:p-8 flex flex-col justify-between shadow-sm">
+                    <div className="space-y-5">
+                      <div className="flex items-center space-x-3 pb-3 border-b border-surface-50 dark:border-surface-900">
+                        <div className="p-2 bg-indigo-600/10 text-indigo-600 rounded-xl">
+                          <Database className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h3 className="font-extrabold text-sm text-surface-900 dark:text-surface-50 tracking-tight leading-tight">
+                            System Status Monitor
+                          </h3>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Real-time gateway diagnostics</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {[
+                          { label: "Express server.ts", val: "Online", clr: "text-green-500" },
+                          { label: "Blog Index Controller", val: "Operational (File-system read/write)", clr: "text-green-500" },
+                          { label: "Blogger Sync API Gate", val: `/api/blog/publish`, clr: "text-indigo-500 font-mono" },
+                          { label: "Gemini SDK Core", val: "@google/genai (Dynamic)", clr: "text-indigo-500" },
+                          { label: "Firebase Handshake", val: "Connected", clr: "text-green-500" },
+                          { label: "Gatt Bluetooth Mock API", val: "Operational", clr: "text-green-500" }
+                        ].map((sys, idx) => (
+                          <div key={idx} className="flex justify-between items-center text-xs border-b border-surface-50 dark:border-surface-900/60 pb-2.5">
+                            <span className="text-gray-500 font-semibold">{sys.label}</span>
+                            <span className={`font-black ${sys.clr}`}>{sys.val}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-6 mt-4 border-t border-surface-50 dark:border-surface-900/60 flex items-center justify-between text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                      <span>Build Environment</span>
+                      <span className="text-indigo-500">Node JS / Vite 6</span>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
             </motion.div>
-          ))}
+          )}
+
+        </AnimatePresence>
+      </main>
+
+      {/* FOOTER */}
+      <footer className="bg-white dark:bg-surface-800 border-t border-surface-100 dark:border-surface-800 py-10 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-1.5 text-center md:text-left">
+            <h3 className="text-sm font-black text-surface-900 dark:text-surface-50">
+              {t('footer.title')}
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-semibold max-w-md">
+              {t('footer.tagline')}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <button
+              onClick={() => handleCopyText("chimangwejavis1@gmail.com", t('footer.copied') || "Copied!")}
+              className="px-4 py-2.5 bg-surface-50 dark:bg-surface-900 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-xl text-[10px] font-black uppercase tracking-wider border border-surface-100 dark:border-surface-800 flex items-center space-x-2 transition text-gray-600 dark:text-gray-300"
+            >
+              <Mail className="h-4 w-4" />
+              <span>{t('footer.copy_email')}</span>
+            </button>
+
+            <button
+              onClick={() => handleCopyText("https://linkedin.com", t('footer.copied') || "Copied!")}
+              className="px-4 py-2.5 bg-surface-50 dark:bg-surface-900 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-xl text-[10px] font-black uppercase tracking-wider border border-surface-100 dark:border-surface-800 flex items-center space-x-2 transition text-gray-600 dark:text-gray-300"
+            >
+              <Linkedin className="h-4 w-4" />
+              <span>Copy LinkedIn</span>
+            </button>
+          </div>
         </div>
-      </div>
-    </section>
-  );
-}
+      </footer>
 
-function ProjectCard({ project }: any) {
-  const [currentImg, setCurrentImg] = useState(0);
-  const images = project.images && project.images.length > 0 ? project.images : [];
-
-  const nextImg = (e: MouseEvent) => {
-    e.stopPropagation();
-    setCurrentImg((prev) => (prev + 1) % images.length);
-  };
-
-  const prevImg = (e: MouseEvent) => {
-    e.stopPropagation();
-    setCurrentImg((prev) => (prev - 1 + images.length) % images.length);
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true }}
-      className="glass-card rounded-2xl overflow-hidden group border border-surface-700 hover:border-primary/40 transition-all flex flex-col h-full"
-    >
-      <div className="h-56 bg-surface-900 relative overflow-hidden group/img">
-        {images.length > 0 ? (
-          <>
-            <motion.img
-              key={currentImg}
+      {/* DETAILED PROJECT CASE STUDY DIALOG MODAL */}
+      <AnimatePresence>
+        {selectedProject && (
+          <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+            
+            {/* Dark modal overlay background */}
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              src={images[currentImg]}
-              alt={project.title}
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-            />
-            {images.length > 1 && (
-              <>
-                <button 
-                  onClick={prevImg}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface-900/80 border border-surface-700 flex items-center justify-center text-white opacity-0 group-hover/img:opacity-100 transition-opacity hover:bg-primary"
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedProject(null)}
+              className="fixed inset-0 bg-surface-900/60 backdrop-blur-sm"
+            ></motion.div>
+
+            {/* Modal card container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-700 max-w-3xl w-full max-h-[85vh] overflow-y-auto shadow-2xl relative z-10 flex flex-col"
+            >
+              
+              {/* Header image banner */}
+              <div className="h-52 w-full overflow-hidden relative border-b border-surface-100 dark:border-surface-700 bg-surface-100 dark:bg-surface-900">
+                <img
+                  src={selectedProject.image}
+                  alt={selectedProject.title}
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+                <button
+                  onClick={() => setSelectedProject(null)}
+                  className="absolute top-4 right-4 p-2 bg-surface-900/80 text-white rounded-xl hover:bg-surface-900 transition backdrop-blur-sm text-xs font-bold px-3 py-2"
                 >
-                  <ChevronLeft size={16} />
+                  Close Case Study
                 </button>
-                <button 
-                  onClick={nextImg}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-surface-900/80 border border-surface-700 flex items-center justify-center text-white opacity-0 group-hover/img:opacity-100 transition-opacity hover:bg-primary"
-                >
-                  <ChevronRight size={16} />
-                </button>
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                  {images.map((_, i) => (
-                    <div 
-                      key={i} 
-                      className={`w-1.5 h-1.5 rounded-full transition-all ${i === currentImg ? "bg-primary w-4" : "bg-white/30"}`}
-                    />
-                  ))}
+              </div>
+
+              {/* Modal scroll contents */}
+              <div className="p-6 md:p-8 space-y-6">
+                
+                {/* Title */}
+                <div className="space-y-3.5 border-b border-surface-50 dark:border-surface-900 pb-5">
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedProject.tags.map(tag => (
+                      <span key={tag} className="text-[9px] font-black tracking-widest text-indigo-600 dark:text-indigo-400 uppercase bg-indigo-600/10 dark:bg-indigo-400/10 px-2.5 py-1 rounded-xl">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <h3 className="text-xl md:text-3xl font-black tracking-tight text-surface-900 dark:text-surface-50 leading-tight">
+                    {selectedProject.title}
+                  </h3>
+                  <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">
+                    Mechatronics Case Study Analysis
+                  </p>
                 </div>
-              </>
-            )}
-          </>
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-4 text-surface-700">
-            <Camera size={48} strokeWidth={1} />
-            <span className="text-[10px] font-mono uppercase tracking-widest">No Images Provided</span>
+
+                {/* Subsections */}
+                <div className="space-y-6 text-xs text-gray-600 dark:text-gray-300 leading-relaxed font-semibold">
+                  
+                  {/* Problem Statement */}
+                  <div className="space-y-2">
+                    <h4 className="font-extrabold text-sm text-indigo-600 dark:text-indigo-400 tracking-tight uppercase tracking-wide">
+                      The Engineering Problem
+                    </h4>
+                    <p className="bg-surface-50 dark:bg-surface-900/60 p-4 rounded-xl border border-surface-100 dark:border-surface-700/80">
+                      {selectedProject.caseStudy.problem}
+                    </p>
+                  </div>
+
+                  {/* Solution Outline */}
+                  <div className="space-y-2">
+                    <h4 className="font-extrabold text-sm text-indigo-600 dark:text-indigo-400 tracking-tight uppercase tracking-wide">
+                      Proposed Solution & System Architecture
+                    </h4>
+                    <p>
+                      {selectedProject.caseStudy.solution}
+                    </p>
+                  </div>
+
+                  {/* Implementation Details */}
+                  <div className="space-y-2">
+                    <h4 className="font-extrabold text-sm text-indigo-600 dark:text-indigo-400 tracking-tight uppercase tracking-wide">
+                      Technical Implementation
+                    </h4>
+                    <ul className="list-disc pl-5 space-y-2">
+                      {selectedProject.caseStudy.implementation.map((step, idx) => (
+                        <li key={idx}>{step}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Components Sizing */}
+                  <div className="space-y-2 pt-4 border-t border-surface-50 dark:border-surface-900/60">
+                    <h4 className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                      Engineering Component Sizing
+                    </h4>
+                    <div className="flex flex-wrap gap-2 pt-1.5">
+                      {selectedProject.caseStudy.components.map(comp => (
+                        <span key={comp} className="px-3 py-1.5 bg-surface-50 dark:bg-surface-900/55 rounded-lg border border-surface-100 dark:border-surface-700/60 text-[10px] font-bold text-gray-500 dark:text-gray-400">
+                          {comp}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </motion.div>
+
           </div>
         )}
-        <div className="absolute top-4 left-4 inline-flex items-center gap-2 px-2 py-1 bg-surface-900/80 backdrop-blur-md rounded border border-surface-700 text-[10px] text-slate-300 font-mono">
-          {project.category}
-        </div>
-      </div>
-      <div className="p-8 flex flex-col flex-grow">
-        <h3 className="text-xl font-display font-bold mb-3">{project.title}</h3>
-        <p className="text-slate-400 text-sm leading-relaxed mb-6 flex-grow">{project.description}</p>
-        <div className="flex flex-wrap gap-2 mb-6">
-          {project.tags.map((tag: string) => (
-            <span key={tag} className="text-[10px] font-mono text-primary/70">{`#${tag}`}</span>
-          ))}
-        </div>
-        <button className="flex items-center gap-2 text-xs font-bold text-primary group/btn hover:underline">
-          Project Documentation <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
-        </button>
-      </div>
-    </motion.div>
+      </AnimatePresence>
+
+    </div>
   );
 }
-
-function Projects() {
-  const projects = [
-    {
-      title: "Dual-Axis Solar Tracker",
-      category: "Renewable Energy",
-      description: "Designed a system to optimize solar energy absorption using LDR sensors and servo motors controlled via Arduino. Increased efficiency by following the sun's trajectory.",
-      tags: ["Arduino", "Servo Motors", "LDR Sensors", "Calculus"],
-      images: [
-        solarTrackerImg,
-        "https://images.unsplash.com/photo-1509391366360-fe5bb58488b5?auto=format&fit=crop&q=80&w=800"
-      ]
-    },
-    {
-      title: "RFID Smart Access Security",
-      category: "Smart Security",
-      description: "Developed an automated security system using ESP32, RFID modules, and relay control for door lock mechanisms. Features centralized database logging.",
-      tags: ["ESP32", "RFID RC522", "Relays", "Security"],
-      images: [
-        rfidLockImg,
-        "https://images.unsplash.com/photo-1558494949-ef010cbdcc48?auto=format&fit=crop&q=80&w=800"
-      ]
-    },
-    {
-      title: "IoT Home Control Dashboard",
-      category: "Automation",
-      description: "Built a remote-access automation system for controlling household appliances using digital interfaces and sensors. Real-time feedback via Wi-Fi.",
-      tags: ["IoT", "WebSockets", "Home Assistant", "System Integration"],
-      images: [iotDashboardImg]
-    }
-  ];
-
-  return (
-    <section id="projects" className="py-24 px-6 bg-surface-900 border-y border-surface-800">
-      <div className="max-w-7xl mx-auto">
-        <SectionHeading title="Recent Projects" subtitle="Showcase" icon={Code} />
-        
-        <div className="grid md:grid-cols-3 gap-8">
-          {projects.map((project, i) => (
-            <ProjectCard key={project.title} project={project} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Leadership() {
-  return (
-    <section id="leadership" className="py-24 px-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-16 items-center">
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
-            <SectionHeading title="Team Leadership & Project Management" subtitle="Soft Skills" icon={Users} />
-            <p className="text-slate-400 leading-relaxed mb-8">
-              Leadership isn't just about technical expertise; it's about coordination, motivation, and vision. 
-              I have hands-on experience in:
-            </p>
-            <ul className="space-y-4">
-              {[
-                "Coordinating class and group activities across multiple disciplines",
-                "Organizing and managing project budgets and resources",
-                "Preparing detailed project execution plans and timelines",
-                "Motivating team members toward collaborative success"
-              ].map((item, i) => (
-                <li key={i} className="flex gap-4 items-start group">
-                  <div className="w-6 h-6 rounded bg-primary/20 flex items-center justify-center text-primary mt-1 shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
-                    <ChevronRight size={14} />
-                  </div>
-                  <span className="text-slate-300 text-sm">{item}</span>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              { label: "Successful Realizations", value: "10+", icon: Award },
-              { label: "Budgets Managed", value: "Verified", icon: Zap },
-              { label: "Team Members", value: "Local/Global", icon: Users },
-              { label: "Coordination", value: "End-to-End", icon: Wrench }
-            ].map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="glass-card p-6 rounded-2xl flex flex-col items-center text-center group transition-all hover:bg-primary/5"
-              >
-                <stat.icon className="text-primary mb-4 group-hover:scale-110 transition-transform" size={24} />
-                <div className="text-2xl font-display font-bold text-slate-100">{stat.value}</div>
-                <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Contact() {
-  return (
-    <section id="contact" className="py-24 px-6 bg-surface-900 border-t border-surface-800">
-      <div className="max-w-3xl mx-auto text-center">
-        <SectionHeading title="Connect for Collaboration" subtitle="Contact" icon={Mail} />
-        <p className="text-slate-400 mb-12">
-          I am always looking for opportunities to learn, collaborate, and contribute to impactful technology projects. 
-          Whether you have a technical query or a leadership proposal, feel free to reach out.
-        </p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="glass-card p-6 sm:p-8 rounded-3xl grid md:grid-cols-2 gap-8 items-center overflow-hidden"
-        >
-          <div className="text-left space-y-6 w-full overflow-hidden">
-            <div className="flex items-center gap-4 w-full">
-              <div className="w-10 h-10 rounded-full bg-surface-900 border border-surface-700 flex items-center justify-center text-primary shrink-0">
-                <Mail size={20} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest">Email Address</div>
-                <div className="text-slate-200 font-bold text-xs sm:text-sm break-all">chimangwejavisnyamekong@gmail.com</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 w-full">
-              <div className="w-10 h-10 rounded-full bg-surface-900 border border-surface-700 flex items-center justify-center text-primary shrink-0">
-                <Linkedin size={20} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-slate-500 text-[10px] uppercase font-bold tracking-widest">Personal Profile</div>
-                <div className="text-slate-200 font-bold text-xs sm:text-sm break-all">linkedin.com/in/chimangwe javis</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="w-full">
-            <a 
-              href="mailto:chimangwejavisnyamekong@gmail.com" 
-              className="w-full py-3 sm:py-4 bg-primary text-white text-sm sm:text-base font-bold rounded-xl flex items-center justify-center gap-3 hover:glow-blue transition-all"
-            >
-              <Send size={18} /> <span className="truncate">Send Message</span>
-            </a>
-            <div className="text-[10px] text-slate-500 uppercase tracking-widest font-mono mt-4">Usually responds within 24 hours</div>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="py-12 px-6 border-t border-surface-800 bg-surface-900">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-        <div className="flex flex-col gap-2">
-          <div className="text-lg font-display font-bold">JAVIS<span className="text-primary">.TECH</span></div>
-          <p className="text-xs text-slate-500 font-mono">Building systems for a smarter tomorrow.</p>
-        </div>
-
-        <div className="flex gap-4">
-          {[
-            { icon: Github, href: "https://github.com/javis143" },
-            { icon: Linkedin, href: "https://www.linkedin.com/in/chimangwe-javis-a4893932b?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" },
-            { icon: Mail, href: "mailto:chimangwejavis1@gmail.com" }
-          ].map((social, i) => (
-            <a 
-              key={i} 
-              href={social.href}
-              className="w-10 h-10 rounded-lg bg-surface-800 border border-surface-700 flex items-center justify-center text-slate-400 hover:text-primary hover:border-primary transition-all"
-            >
-              <social.icon size={18} />
-            </a>
-          ))}
-        </div>
-
-        <div className="flex flex-col items-center md:items-end gap-2">
-          <div className="text-[10px] text-slate-500 uppercase tracking-[0.2em]">
-            &copy; {new Date().getFullYear()} Javis Portfolio. Made by <a target="_blank" href="https://2bigdev.vercel.app">2BigDev</a>.
-          </div>
-          <Link to="/admin" className="text-[8px] text-slate-700 hover:text-slate-400 font-mono uppercase tracking-widest transition-colors">
-            System Console
-          </Link>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-function Home() {
-  const { hash } = useLocation();
-
-  useEffect(() => {
-    if (hash) {
-      const el = document.querySelector(hash);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [hash]);
-
-  return (
-    <>
-      <SEO />
-      <Hero />
-      <About />
-      <Skills />
-      <Projects />
-      <Leadership />
-      <Contact />
-    </>
-  );
-}
-
-// --- App Entry ---
-
-export default function App() {
-  return (
-    <Router>
-      <div className="selection:bg-primary/30 selection:text-white">
-        <Navbar />
-        <main>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/blog" element={<Blog />} />
-            <Route path="/admin" element={<Admin />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
-  );
-}
-

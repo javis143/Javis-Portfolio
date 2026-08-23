@@ -1,0 +1,8 @@
+{
+  "id": "multi-tenant-architecture",
+  "title": "Building a Multi-Tenant Application Architecture",
+  "date": "2026-07-05T09:00:00.000Z",
+  "excerpt": "A comprehensive guide on designing multi-tenant architectures, focusing on data isolation, routing, and deployment strategies.",
+  "content": "## Introduction\n\nMulti-tenancy is an architecture in which a single instance of a software application serves multiple customers. Each customer is called a tenant.\n\n## Isolation Models\n\n1.  **Database per Tenant:** The highest level of isolation. Each tenant has its own database. Excellent for security and compliance but harder to scale.\n2.  **Schema per Tenant:** Tenants share the same database but have their own schema. A good balance between isolation and operational overhead.\n3.  **Shared Schema (Row-level Security):** All tenants share the same database and schema. Tenant ID distinguishes rows. Very easy to scale, but requires strict row-level security.\n\n## Routing and Identification\n\nIdentifying tenants usually happens via subdomains (tenant1.example.com) or URL paths (example.com/tenant1). Subdomains are often preferred for clean routing and branded experiences.\n\n## Conclusion\n\nChoosing the right isolation model is critical and depends entirely on your compliance requirements, scale, and budget.",
+  "tags": ["Software", "Architecture", "Cloud"]
+}

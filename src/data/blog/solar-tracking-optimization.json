@@ -1,0 +1,8 @@
+{
+  "id": "solar-tracking-optimization",
+  "title": "Optimizing Solar Tracking Algorithms",
+  "date": "2026-07-01T14:30:00.000Z",
+  "excerpt": "A deep dive into dual-axis solar tracking algorithms. How to maximize energy yield using astronomical equations.",
+  "content": "## The Need for Tracking\n\nFixed solar panels miss out on a significant amount of potential energy. By tracking the sun's trajectory, we can increase yield by up to 40%.\n\n## Astronomical Algorithms\n\nInstead of relying purely on LDR sensors, modern trackers use astronomical equations to calculate the sun's exact position (azimuth and elevation) based on time and GPS coordinates.\n\n### Benefits\n- Immune to cloud cover interference\n- Higher precision\n- Predictive positioning\n\n## Implementation\n\nUsing an ESP32, we can easily pull time from an NTP server, calculate the position, and adjust the servo motors accordingly.\n\n## Conclusion\n\nHybrid systems that combine astronomical calculations with sensor feedback offer the best performance and reliability.",
+  "tags": ["Hardware", "Renewable", "Algorithms"]
+}
