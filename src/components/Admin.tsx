@@ -8,19 +8,13 @@ import {
   query, 
   orderBy, 
   onSnapshot,
-  Timestamp,
   serverTimestamp
 } from 'firebase/firestore';
 import { 
-  auth, 
   db, 
-  loginWithEmail,
-  registerWithEmail,
-  logout,
   handleFirestoreError, 
   OperationType 
 } from '../lib/firebase';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { 
   Plus, 
   Trash2, 

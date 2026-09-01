@@ -8,6 +8,9 @@ import {
 } from "lucide-react";
 import { useTranslation } from "./lib/i18n";
 import Markdown from 'react-markdown';
+import { Admin } from "./components/Admin";
+import { Blog } from "./components/Blog";
+import { SolarTrackerSandbox } from "./components/SolarTrackerSandbox";
 import blogIndex from "./data/blog_index.json";
 
 import esp32Journey from "./data/blog/esp32-journey.json";
@@ -164,8 +167,6 @@ export default function App() {
   // --- Dynamic Blog Integration ---
   const [dynamicBlogIndex, setDynamicBlogIndex] = useState<any[]>([]);
   const [loadedArticles, setLoadedArticles] = useState<Record<string, any>>({});
-  const [blogsLoading, setBlogsLoading] = useState(true);
-  const [activeArticleLoading, setActiveArticleLoading] = useState(false);
 
   // --- AI Blogging Sandbox & Settings States ---
   const [showApiKey, setShowApiKey] = useState(false);
@@ -178,7 +179,6 @@ export default function App() {
 
   const fetchBlogIndex = async () => {
     try {
-      setBlogsLoading(true);
       const res = await fetch("/api/blog");
       if (res.ok) {
         const data = await res.json();
@@ -191,14 +191,11 @@ export default function App() {
     } catch (err) {
       console.error("Error fetching blog index from API, falling back to static:", err);
       setDynamicBlogIndex(blogIndex);
-    } finally {
-      setBlogsLoading(false);
     }
   };
 
   const fetchArticleDetails = async (id: string) => {
     if (loadedArticles[id]) return;
-    setActiveArticleLoading(true);
     try {
       const res = await fetch(`/api/blog/${id}`);
       if (res.ok) {
@@ -216,8 +213,6 @@ export default function App() {
       if (staticArt) {
         setLoadedArticles(prev => ({ ...prev, [id]: staticArt }));
       }
-    } finally {
-      setActiveArticleLoading(false);
     }
   };
 
@@ -826,17 +821,45 @@ export default function App() {
                       </h3>
                     </div>
 
-                    <div className="p-5 bg-surface-50 dark:bg-surface-900/60 rounded-2xl border border-surface-100 dark:border-surface-800/80 flex items-start space-x-4">
-                      <div className="h-12 w-12 rounded-xl bg-indigo-600 flex items-center justify-center font-black text-white text-xs shrink-0 shadow-lg shadow-indigo-600/10">
-                        3D
+                    <div className="space-y-3">
+                      {/* Certification 1 */}
+                      <div className="p-4 bg-surface-50 dark:bg-surface-900/60 rounded-2xl border border-surface-100 dark:border-surface-800/80 flex items-start space-x-4 transition-all duration-200 hover:border-indigo-500/20">
+                        <div className="h-12 w-12 rounded-xl overflow-hidden bg-white flex items-center justify-center shrink-0 border border-surface-100 dark:border-surface-800 shadow-sm">
+                          <img 
+                            src="/images/certified_project_planner_enovia_associate.jpg" 
+                            alt="Project Planner Enovia Associate Badge" 
+                            className="h-full w-full object-contain"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="text-xs font-black text-surface-900 dark:text-surface-50 leading-snug">
+                            {t('certifications.badge_title_1')}
+                          </h4>
+                          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                            Dassault Systèmes
+                          </p>
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                        <h4 className="text-xs font-black text-surface-900 dark:text-surface-50 leading-snug">
-                          {t('certifications.badge_title')}
-                        </h4>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                          Dassault Systèmes
-                        </p>
+
+                      {/* Certification 2 */}
+                      <div className="p-4 bg-surface-50 dark:bg-surface-900/60 rounded-2xl border border-surface-100 dark:border-surface-800/80 flex items-start space-x-4 transition-all duration-200 hover:border-indigo-500/20">
+                        <div className="h-12 w-12 rounded-xl overflow-hidden bg-white flex items-center justify-center shrink-0 border border-surface-100 dark:border-surface-800 shadow-sm">
+                          <img 
+                            src="/images/certified_3dexperience_3dswymer_associate.jpg" 
+                            alt="3DSwymer Associate Badge" 
+                            className="h-full w-full object-contain"
+                            referrerPolicy="no-referrer"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <h4 className="text-xs font-black text-surface-900 dark:text-surface-50 leading-snug">
+                            {t('certifications.badge_title_2')}
+                          </h4>
+                          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                            Dassault Systèmes
+                          </p>
+                        </div>
                       </div>
                     </div>
 
@@ -934,114 +957,7 @@ export default function App() {
 
           {/* TAB 2: INTERACTIVE BLOG */}
           {activeTab === 'blog' && (
-            <motion.div
-              key="blog-tab"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-8 animate-fade-in"
-            >
-              
-              <div className="border-b border-surface-100 dark:border-surface-800 pb-5">
-                <h2 className="text-2xl md:text-3xl font-black tracking-tight">{t('nav.blog')}</h2>
-                <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider mt-1">Written Columns & Firmware Walkthroughs</p>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                
-                {/* Left Side: Articles list */}
-                <div className="lg:col-span-5 space-y-4">
-                  {blogsLoading ? (
-                    <div className="flex flex-col items-center justify-center py-12 text-gray-400 space-y-3">
-                      <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
-                      <span className="text-xs font-semibold">Loading blog rolls...</span>
-                    </div>
-                  ) : dynamicBlogIndex.length === 0 ? (
-                    <div className="text-center py-12 text-gray-400 text-xs font-semibold">No articles published yet.</div>
-                  ) : (
-                    dynamicBlogIndex.map((article, idx) => (
-                      <button
-                        key={article.id}
-                        onClick={() => setSelectedBlogId(article.id)}
-                        className={`w-full text-left p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-3.5 ${
-                          selectedBlogId === article.id || (!selectedBlogId && idx === 0)
-                            ? "bg-indigo-600/5 dark:bg-indigo-400/5 border-indigo-600/30 dark:border-indigo-400/30"
-                            : "bg-white dark:bg-surface-800 border-surface-100 dark:border-surface-800 hover:bg-surface-100/50 dark:hover:bg-surface-800/80"
-                        }`}
-                      >
-                        <div className="space-y-2">
-                          <div className="flex flex-wrap gap-1">
-                            {article.tags.slice(0, 3).map((tag: string) => (
-                              <span key={tag} className="text-[9px] font-black tracking-widest text-indigo-600 dark:text-indigo-400 uppercase bg-indigo-600/10 dark:bg-indigo-400/10 px-2 py-0.5 rounded-lg">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                          <h3 className="font-extrabold text-sm tracking-tight text-surface-900 dark:text-surface-50 leading-snug">
-                            {article.title}
-                          </h3>
-                          <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 font-semibold">
-                            {article.excerpt}
-                          </p>
-                        </div>
-
-                        <div className="flex items-center justify-between text-[10px] text-gray-400 font-bold pt-2 border-t border-surface-50 dark:border-surface-900/60 w-full">
-                          <span>Javis</span>
-                          <span>{new Date(article.date).toLocaleDateString()}</span>
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-
-                {/* Right Side: Active Reader Panel */}
-                <div className="lg:col-span-7 bg-white dark:bg-surface-800 rounded-3xl border border-surface-100 dark:border-surface-800 p-6 md:p-8 min-h-96">
-                  {(() => {
-                    const activeId = selectedBlogId || dynamicBlogIndex[0]?.id || "esp32-journey";
-                    
-                    if (activeArticleLoading) {
-                      return (
-                        <div className="flex flex-col items-center justify-center py-24 text-gray-400 space-y-3 h-full">
-                          <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
-                          <span className="text-xs font-semibold">Loading article body...</span>
-                        </div>
-                      );
-                    }
-
-                    const article = loadedArticles[activeId];
-                    if (!article) return <div className="text-center py-12 text-gray-400">Select an article to begin reading.</div>;
-
-                    return (
-                      <div className="space-y-6">
-                        <div className="space-y-3 border-b border-surface-100 dark:border-surface-800/80 pb-5">
-                          <div className="flex flex-wrap gap-1.5">
-                            {article.tags.map((tag: string) => (
-                              <span key={tag} className="text-[10px] font-black tracking-widest text-indigo-600 dark:text-indigo-400 uppercase bg-indigo-600/10 dark:bg-indigo-400/10 px-2.5 py-1 rounded-xl">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                          <h1 className="text-xl md:text-3xl font-black tracking-tight text-surface-900 dark:text-surface-50 leading-tight">
-                            {article.title}
-                          </h1>
-                          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">
-                            Published {new Date(article.date).toLocaleDateString()} by Javis
-                          </p>
-                        </div>
-
-                        {/* Beautifully Rendered Markdown Prose */}
-                        <div className="prose dark:prose-invert prose-sm max-w-none prose-headings:font-black prose-p:leading-relaxed prose-p:font-medium prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-li:text-gray-600 dark:prose-li:text-gray-300 prose-img:rounded-2xl prose-strong:font-bold prose-code:text-indigo-600 dark:prose-code:text-indigo-400">
-                          <Markdown>{article.content}</Markdown>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
-
-              </div>
-
-            </motion.div>
+            <Blog />
           )}
 
           {/* TAB 3: TASKS PLANNER */}
@@ -1388,6 +1304,11 @@ export default function App() {
 
           {/* TAB 5: ADMIN SYSTEM CONFIG */}
           {activeTab === 'admin' && (
+            <Admin />
+          )}
+
+          {/* REMOVED INLINE CONFIG */}
+          {false && (
             <motion.div
               key="admin-tab"
               initial={{ opacity: 0, y: 15 }}
@@ -1920,6 +1841,11 @@ export default function App() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Physical Hardware Sandbox Section for Solar Tracker */}
+                  {selectedProject.id === "solar-tracker" && (
+                    <SolarTrackerSandbox />
+                  )}
 
                 </div>
 

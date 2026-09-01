@@ -36,7 +36,8 @@ const dictionary: Record<Locale, Record<string, any>> = {
     certifications: {
       title: 'Certifications',
       view_profile: 'View Full Credly Profile',
-      badge_title: 'Certified 3DEXPERIENCE Project Planner - Associate',
+      badge_title_1: 'Certified 3DEXPERIENCE Project Planner - Associate',
+      badge_title_2: 'Certified 3DEXPERIENCE 3DSwymer - Associate',
       view_credential: 'View Credential',
     },
     commits: {
@@ -68,7 +69,7 @@ const dictionary: Record<Locale, Record<string, any>> = {
       bachelors_field: 'Mechatronics Engineering',
       hnd: 'Higher National Diploma (HND)',
       hnd_field: 'Industrial Computer Automation',
-      cert_desc: 'Dassault Systèmes Certified 3DEXPERIENCE Project Planner (Associate) with a strong foundation in mechanical structures, motion control, and embedded telemetry.',
+      cert_desc: 'Dassault Systèmes Certified 3DEXPERIENCE Project Planner (Associate) and 3DSwymer (Associate) with a strong foundation in mechanical structures, digital collaboration, motion control, and embedded telemetry.',
       verify_badge: 'Verify Dassault Credly Credentials →',
       journey_title: 'My Journey & Passion',
       journey_p1: "Hello! I'm Javis, a Mechatronics Engineer. I am deeply passionate about developing intelligent, highly responsive systems that bridge the gap between physical mechanics and digital logic.",
@@ -127,7 +128,8 @@ const dictionary: Record<Locale, Record<string, any>> = {
     certifications: {
       title: 'Certifications',
       view_profile: 'Voir le profil Credly complet',
-      badge_title: 'Certified 3DEXPERIENCE Project Planner - Associate',
+      badge_title_1: 'Certified 3DEXPERIENCE Project Planner - Associate',
+      badge_title_2: 'Certified 3DEXPERIENCE 3DSwymer - Associate',
       view_credential: 'Voir le certificat',
     },
     commits: {
@@ -159,7 +161,7 @@ const dictionary: Record<Locale, Record<string, any>> = {
       bachelors_field: 'Génie Mécatronique',
       hnd: 'Diplôme National Supérieur (HND)',
       hnd_field: 'Informatique Industrielle et Automatisme',
-      cert_desc: 'Planificateur de projet certifié 3DEXPERIENCE par Dassault Systèmes (Associé) avec de solides compétences en structures mécaniques, contrôle de mouvement et télémétrie embarquée.',
+      cert_desc: 'Planificateur de projet certifié 3DEXPERIENCE et 3DSwymer (Associé) par Dassault Systèmes avec de solides compétences en collaboration numérique, structures mécaniques et télémétrie embarquée.',
       verify_badge: 'Vérifier les badges Credly de Dassault →',
       journey_title: 'Mon Parcours & Ma Passion',
       journey_p1: "Bonjour ! Je m'appelle Javis, ingénieur en mécatronique. Je suis profondément passionné par le développement de systèmes intelligents et réactifs qui font le pont entre la mécanique physique et la logique numérique.",
@@ -218,7 +220,8 @@ const dictionary: Record<Locale, Record<string, any>> = {
     certifications: {
       title: 'Vyeti na Tuzo',
       view_profile: 'Angalia Wasifu Kamili wa Credly',
-      badge_title: 'Certified 3DEXPERIENCE Project Planner - Associate',
+      badge_title_1: 'Certified 3DEXPERIENCE Project Planner - Associate',
+      badge_title_2: 'Certified 3DEXPERIENCE 3DSwymer - Associate',
       view_credential: 'Angalia Cheti',
     },
     commits: {
@@ -250,7 +253,7 @@ const dictionary: Record<Locale, Record<string, any>> = {
       bachelors_field: 'Uhandisi wa Mekatroniki',
       hnd: 'Stashahada ya Juu ya Kitaifa (HND)',
       hnd_field: 'Kiotomatishaji cha Kompyuta ya Viwandani',
-      cert_desc: 'Planmshauri wa mradi aliyeidhinishwa wa 3DEXPERIENCE na Dassault Systèmes (Associate) mwenye msingi thabiti katika miundo ya kimitambo, udhibiti wa mwendo, na telemetry iliyopachikwa.',
+      cert_desc: 'Mshauri wa mradi aliyeidhinishwa wa 3DEXPERIENCE na 3DSwymer (Associate) na Dassault Systèmes mwenye msingi thabiti katika ushirikiano wa kidijitali, miundo ya kimitambo, na telemetry iliyopachikwa.',
       verify_badge: 'Thibitisha Vyeti vya Dassault Credly →',
       journey_title: 'Safari Yangu na Shauku',
       journey_p1: "Habari! Mimi ni Javis, Mhandisi wa Mekatroniki. Nina shauku kubwa ya kuunda mifumo ya akili inayounganisha ulimwengu wa kimitambo na mantiki ya kidijitali.",

@@ -1,9 +1,23 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 export const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+
+export enum OperationType {
+  CREATE = 'CREATE',
+  READ = 'READ',
+  UPDATE = 'UPDATE',
+  DELETE = 'DELETE',
+  LIST = 'LIST'
+}
+
+export function handleFirestoreError(error: any, operation: OperationType, path: string) {
+  console.error(`Firestore error during ${operation} at ${path}:`, error);
+}
 
 const provider = new GoogleAuthProvider();
 // Request Workspace scopes for Tasks
